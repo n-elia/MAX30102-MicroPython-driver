@@ -277,6 +277,12 @@ class MAX30102(object):
                          MAX30105_SHUTDOWN_MASK,
                          MAX30105_SHUTDOWN)
         
+    def wakeUp(self):
+        # Pull IC out of low power mode (datasheet pg. 19)
+        self.set_bitMask(MAX30105_MODECONFIG,
+                         MAX30105_SHUTDOWN_MASK,
+                         MAX30105_WAKEUP)   
+         
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
         image_p1 = (value // (unit * 50)) * (str(9) * 5)
