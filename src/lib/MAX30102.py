@@ -16,11 +16,10 @@ I2C_DEF_SDA_PIN = 21
 I2C_DEF_SCL_PIN = 22
 
 # Status Registers
-# TODO: interrupt features not implemented yet
-MAX30105_INTSTAT1 =     0x00 # TODO
-MAX30105_INTSTAT2 =     0x01 # TODO
-MAX30105_INTENABLE1 =   0x02 # TODO
-MAX30105_INTENABLE2 =   0x03 # TODO
+MAX30105_INTSTAT1 =     0x00
+MAX30105_INTSTAT2 =     0x01
+MAX30105_INTENABLE1 =   0x02
+MAX30105_INTENABLE2 =   0x03
 
 # FIFO Registers
 MAX30105_FIFOWRITEPTR = 0x04
@@ -40,13 +39,11 @@ MAX30105_MULTILEDCONFIG1 =  0x11
 MAX30105_MULTILEDCONFIG2 =  0x12
 
 # Die Temperature Registers
-# TODO: temperature sensing functions not implemented yet
 MAX30105_DIETEMPINT =    0x1F
 MAX30105_DIETEMPFRAC =   0x20
 MAX30105_DIETEMPCONFIG = 0x21
 
 # Proximity Function Registers
-# TODO: not implemented yet
 MAX30105_PROXINTTHRESH = 0x30
 
 # Part ID Registers
@@ -54,7 +51,7 @@ MAX30105_REVISIONID = 0xFE
 MAX30105_PARTID =     0xFF # Should always be 0x15. Identical for MAX30102.
 
 # MAX30105 Commands
-# Interrupt configuration (datasheet pag 13, 14) TODO: TBD
+# Interrupt configuration (datasheet pag 13, 14)
 MAX30105_INT_A_FULL_MASK =      ~0b10000000
 MAX30105_INT_A_FULL_ENABLE =    0x80
 MAX30105_INT_A_FULL_DISABLE =   0x00
@@ -84,16 +81,13 @@ MAX30105_SAMPLEAVG_8 = 	    0x60
 MAX30105_SAMPLEAVG_16 =     0x80
 MAX30105_SAMPLEAVG_32 =     0xA0
 
-# TODO: TBD
 MAX30105_ROLLOVER_MASK =    0xEF
 MAX30105_ROLLOVER_ENABLE =  0x10
 MAX30105_ROLLOVER_DISABLE = 0x00
-# TODO: TBD
 # Mask for 'almost full' interrupt (defaults to 32 samples)
 MAX30105_A_FULL_MASK =      0xF0
 
 # Mode configuration commands (page 19)
-# TODO: TBD
 MAX30105_SHUTDOWN_MASK =    0x7F
 MAX30105_SHUTDOWN = 	    0x80
 MAX30105_WAKEUP = 		    0x00
@@ -470,6 +464,27 @@ class MAX30102(object):
         wp = self.i2c_read_register(MAX30105_FIFOREADPTR)
         return wp
     
+    # Die Temperature method: returns the temperature in C
+    def readTemperature(self):
+        # DIE_TEMP_RDY interrupt must be enabled
+        # Config die temperature register to take 1 temperature sample
+        self.i2c_set_register(MAX30105_DIETEMPCONFIG, 0x01)
+        
+        # Poll for bit to clear, reading is then complete
+        reading = ord(self.i2c_read_register(MAX30105_INTSTAT2))
+        sleep_ms(100);
+        while ((reading & MAX30105_INT_DIE_TEMP_RDY_ENABLE) > 0):
+            reading = ord(self.i2c_read_register(MAX30105_INTSTAT2))
+            sleep_ms(1);
+        
+        # Read die temperature register (integer)
+        tempInt = ord(self.i2c_read_register(MAX30105_DIETEMPINT))
+        # Causes the clearing of the DIE_TEMP_RDY interrupt
+        tempFrac = ord(self.i2c_read_register(MAX30105_DIETEMPFRAC))
+        
+        # Calculate temperature (datasheet pg. 23)
+        return float(tempInt) + (float(tempFrac) * 0.0625)
+
     # Time slots management for multi-LED operation mode
     def enableSlot(self, slotNumber, device):
         # In multi-LED mode, each sample is split into up to four time slots, 
@@ -526,7 +541,7 @@ class MAX30102(object):
         self.i2c_set_register(reg, originalContents | thing)
 
     def setup_sensor(self, LED_MODE=3, LED_POWER=MAX30105_PULSEAMP_LOW,
-                     PULSE_WIDTH=MAX30105_PULSEWIDTH_118):
+                     PULSE_WIDTH=118):
         # Reset the sensor's registers from previous configurations
         self.softReset()
         
