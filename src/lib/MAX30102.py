@@ -168,10 +168,10 @@ class MAX30102(object):
         try:
             self._i2c.readfrom(self._address, 1)
         except OSError as error:
+            logger.error("(%s) I2C Error. Unable to find a MAX3010x sensor.", TAG)
             raise SystemExit(error)
         else:
-            logger.error("(%s) I2C Error. Unable to find a MAX3010x sensor.", TAG)
-            print("Found MAX3010x ParticleSensor: [%s]" % hex(self._address))
+            logger.info("(%s) MAX3010x sensor found!", TAG)
             
         if not (self.checkPartID()):
             logger.error("(%s) Wrong PartID. Unable to find a MAX3010x sensor.", TAG)
@@ -180,6 +180,9 @@ class MAX30102(object):
     def __del__(self):
         self.shutDown()
         logger.info("(%s) Shutting down the sensor.", TAG)
+        
+    def getINT1(self):
+        pass
         
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
@@ -347,7 +350,7 @@ class MAX30102(object):
     
     def checkPartID(self):
         # Checks the correctness of the Device ID
-        part_id = self.readPartID()
+        part_id = ord(self.readPartID())
         return part_id == MAX_30105_EXPECTEDPARTID
     
     def getRevisionID(self):
