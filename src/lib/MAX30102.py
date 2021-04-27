@@ -439,12 +439,22 @@ class MAX30102(object):
         return
 
     def enableSlot(self, slotNumber, device):
-        if (slotNumber == 1):
-            self.bitMask(0x11, 0xF8, 0x01) # 0x11 config1, slot mask 1, 0x01 red
-        if (slotNumber == 2):
-            self.bitMask(0x11, 0x8F, 0x02 << 4) # 0x11 config1, slot mask 2, 0x01 IR
-        if (slotNumber == 3):
-            self.bitMask(0x12, 0xF8, 0x03) # 0x11 config2, slot mask 3, 0x01 green
+        # In multi-LED mode, each sample is split into up to four time slots, 
+        # SLOT1 through SLOT4. These control registers determine which LED is
+        # active in each time slot. (datasheet pag 22)
+        # Devices are SLOT_RED_LED or SLOT_RED_PILOT (proximity)
+        # Assigning a SLOT_RED_LED will pulse LED
+        # Assigning a SLOT_RED_PILOT will detect the proximity
+        if   (slotNumber == 1):
+            self.bitMask(MAX30105_MULTILEDCONFIG1, MAX30105_SLOT1_MASK, device)
+        elif (slotNumber == 2):
+            self.bitMask(MAX30105_MULTILEDCONFIG1, MAX30105_SLOT2_MASK, device << 4)
+        elif (slotNumber == 3):
+            self.bitMask(MAX30105_MULTILEDCONFIG2, MAX30105_SLOT3_MASK, device)
+        elif (slotNumber == 4):
+            self.bitMask(MAX30105_MULTILEDCONFIG2, MAX30105_SLOT4_MASK, device << 4)
+        else:
+            raise ValueError('Wrong slot number:{0}!'.format(slotNumber))
 
     def bitMask(self, reg, slotMask, thing):
         originalContents = ord(self.i2c_read_register(reg))
