@@ -26,12 +26,12 @@ if __name__ == '__main__':
             sensor_data = sensor.read_sensor_multiLED(FIFO_pointer)
             red_array.append(sensor_data[0])
             ir_array.append(sensor_data[1])
-            print(sensor_data)
+            # print(sensor_data)
             samples_n=samples_n+1
             if (ticks_ms()-t_start) > 999:
                 f_HZ = samples_n/1
                 samples_n = 0
                 t_start = ticks_ms()
-                print("f=",f_HZ)
+                print("frequency = ",f_HZ)
         
     
