@@ -286,13 +286,8 @@ class MAX30102(object):
     # LED Configuration
     def setLEDMode(self, LED_MODE):
         # Set LED mode: select which LEDs are used for sampling 
-        # Options: RED only, RED + IR only, or ALL (datasheet pag. 19)
-        available_modes = [MAX30105_MODE_REDONLY,
-                           MAX30105_MODE_REDIRONLY,
-                           MAX30105_MODE_MULTILED]
-        if LED_MODE not in available_modes:
-            raise ValueError('Wrong LED mode:{0}!'.format(LED_MODE))
-        elif LED_MODE == MAX30105_MODE_REDONLY:
+        # Options: RED only, RED + IR only, or ALL (datasheet pag. 19)        
+        if LED_MODE == MAX30105_MODE_REDONLY:
             self.set_bitMask(MAX30105_MODECONFIG,
                              MAX30105_MODE_MASK,
                              MAX30105_MODE_REDONLY)
@@ -316,10 +311,11 @@ class MAX30102(object):
                                   MAX30105_PULSEAMP_MEDIUM) # IR
             self.i2c_set_register(MAX30105_LED3_PULSEAMP, 
                                   MAX30105_PULSEAMP_MEDIUM) # Green
-
             # FIXME move these elsewhere
             self.i2c_set_register(0x11, 0b00100001) #mulitledconfig1
             self.i2c_set_register(0x12, 0b00000011) #mutliledconfig2
+        else:
+            raise ValueError('Wrong LED mode:{0}!'.format(LED_MODE))
             
         # Store the LED mode
         self._led_mode = LED_MODE
