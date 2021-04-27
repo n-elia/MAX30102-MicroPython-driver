@@ -467,18 +467,15 @@ class MAX30102(object):
         self.i2c_set_register(MAX30105_FIFOOVERFLOW, 0) # fifooverflow
         self.i2c_set_register(MAX30105_FIFOREADPTR, 0) # fifoadapter
         
-    def setSampleRate(self, amplitude):
-        self.set_bitMask(MAX30105_PARTICLECONFIG, 0xE3, 0x00)
-
     def setPulseAmplitudeRed(self, amplitude):
         self.i2c_set_register(MAX30105_LED1_PULSEAMP, amplitude)
-
+        
+    def setPulseAmplitudeIR(self, amplitude):
+        self.i2c_set_register(MAX30105_LED2_PULSEAMP, amplitude)
+        
     def setPulseAmplitudeGreen(self, amplitude):
         self.i2c_set_register(MAX30105_LED3_PULSEAMP, amplitude)
     
-    def setPulseAmplitudeIR(self, amplitude):
-        self.i2c_set_register(MAX30105_LED2_PULSEAMP, amplitude)
-
     def setPulseAmplitudeProximity(self, amplitude):
         self.i2c_set_register(MAX30105_LED_PROX_AMP, amplitude)
 
