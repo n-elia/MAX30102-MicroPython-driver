@@ -154,306 +154,309 @@ TAG = 'MAX30105'
 
 # Sensor class
 class MAX30102(object):
-	def __init__(self,
-				 i2cHexAddress=MAX3010X_I2C_ADDRESS,
-				 i2c=SoftI2C(sda=Pin(I2C_DEF_SDA_PIN),
-							 scl=Pin(I2C_DEF_SCL_PIN),
-							 freq=I2C_SPEED_FAST)
-				 ):
-		self._address = i2cHexAddress
-		self._i2c = i2c
-		self._led_mode = None
-		self._pulse_width_set = None
-		
-		try:
-			self._i2c.readfrom(self._address, 1)
-		except OSError as error:
-			logger.error("(%s) I2C Error. Unable to find a MAX3010x sensor.", TAG)
-			raise SystemExit(error)
-		else:
-			logger.info("(%s) MAX3010x sensor found!", TAG)
-			
-		if not (self.checkPartID()):
-			logger.error("(%s) Wrong PartID. Unable to find a MAX3010x sensor.", TAG)
-			raise SystemExit()
-	
-	def __del__(self):
-		self.shutDown()
-		logger.info("(%s) Shutting down the sensor.", TAG)
-	
-	# Methods to read the two interrupt flags
-	def getINT1(self):
-		# Load the Interrupt 1 status (configurable) from the register
-		rev_id = self.i2c_read_register(MAX30105_INTSTAT1)
-		return rev_id
-	
-	def getINT2(self):
-		# Load the Interrupt 2 status (DIE_TEMP_DRY) from the register
-		rev_id = self.i2c_read_register(MAX30105_INTSTAT2)
-		return rev_id
-	
-	# Methods to setup the interrupt flags
-	def enableAFULL(self):
-		# Enable the almost full interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE1,
-					 MAX30105_INT_A_FULL_MASK,
-					 MAX30105_INT_A_FULL_ENABLE)
-		
-	def disableAFULL(self):
-		# Disable the almost full interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE1,
-					 MAX30105_INT_A_FULL_MASK,
-					 MAX30105_INT_A_FULL_DISABLE)
-		
-	def enableDATARDY(self):
-		# Enable the new FIFO data ready interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE1,
-					 MAX30105_INT_DATA_RDY_MASK,
-					 MAX30105_INT_DATA_RDY_ENABLE)
-		
-	def disableDATARDY(self):
-		# Disable the new FIFO data ready interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE1,
-					 MAX30105_INT_DATA_RDY_MASK,
-					 MAX30105_INT_DATA_RDY_DISABLE)
-		
-	def enableALCOVF(self):
-		# Enable the ambient light limit interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE1,
-					 MAX30105_INT_ALC_OVF_MASK,
-					 MAX30105_INT_ALC_OVF_ENABLE)
-		
-	def disableALCOVF(self):
-		# Disable the ambient light limit interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE1,
-					 MAX30105_INT_ALC_OVF_MASK,
-					 MAX30105_INT_ALC_OVF_DISABLE)  
-		  
-	def enablePROXINT(self):
-		# Enable the proximity interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE1,
-					 MAX30105_INT_PROX_INT_MASK,
-					 MAX30105_INT_PROX_INT_ENABLE)
-		
-	def disablePROXINT(self):
-		# Disable the proximity interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE1,
-					 MAX30105_INT_PROX_INT_MASK,
-					 MAX30105_INT_PROX_INT_DISABLE)
-		
-	def enableDIETEMPRDY(self):
-		# Enable the die temp. conversion finish interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE2,
-					 MAX30105_INT_DIE_TEMP_RDY_MASK,
-					 MAX30105_INT_DIE_TEMP_RDY_ENABLE)
-		
-	def disableDIETEMPRDY(self):
-		# Disable the die temp. conversion finish interrupt (datasheet pag. 13)
-		self.bitMask(MAX30105_INTENABLE2,
-					 MAX30105_INT_DIE_TEMP_RDY_MASK,
-					 MAX30105_INT_DIE_TEMP_RDY_DISABLE)     
-	
-	# Configuration reset
-	def softReset(self):
-		# When the RESET bit is set to one, all configuration, threshold,
-		# and data registers are reset to their power-on-state through
-		# a power-on reset. The RESET bit is cleared automatically back to zero
-		# after the reset sequence is completed. (datasheet pag. 19)
-		logger.debug("(%s) Resetting the sensor.", TAG)
-		self.set_bitMask(MAX30105_MODECONFIG,
-						 MAX30105_RESET_MASK,
-						 MAX30105_RESET)
-		curr_status = -1
-		while not ( (curr_status & MAX30105_RESET) == 0 ):
-			sleep_ms(10)
-			curr_status = ord(self.i2c_read_register(MAX30105_MODECONFIG))
-	
-	# Power states methods
-	def shutDown(self):
-		# Put IC into low power mode (datasheet pg. 19)
-		# During shutdown the IC will continue to respond to I2C commands but 
-		# will not update with or take new readings (such as temperature).
-		self.set_bitMask(MAX30105_MODECONFIG,
-						 MAX30105_SHUTDOWN_MASK,
-						 MAX30105_SHUTDOWN)
-		
-	def wakeUp(self):
-		# Pull IC out of low power mode (datasheet pg. 19)
-		self.set_bitMask(MAX30105_MODECONFIG,
-						 MAX30105_SHUTDOWN_MASK,
-						 MAX30105_WAKEUP)   
-	
-	
-	def CreateImage(self, value):
-		unit = (2 ** (18 - self._pulse_width_set)) // (250)
-		image_p1 = (value // (unit * 50)) * (str(9) * 5)
-		image_p2 = ((value % (unit * 50)) // (unit * 10)) * str(9)
-		points = (((value % (unit * 50)) % (unit * 10))) // unit
-		if points > 0:
-			image_p3 = str(points)
-		else:
-			image_p3 = ""
-		image_p4 = ((25) - len(image_p1 + image_p2 + image_p3)) * str(0)
-		tmp_image = image_p1 + image_p2 + image_p3 + image_p4
-		return ':'.join([tmp_image[i:i+5] for i in range(0, len(tmp_image), 5)])
+    def __init__(self,
+                 i2cHexAddress=MAX3010X_I2C_ADDRESS,
+                 i2c=SoftI2C(sda=Pin(I2C_DEF_SDA_PIN),
+                             scl=Pin(I2C_DEF_SCL_PIN),
+                             freq=I2C_SPEED_FAST)
+                 ):
+        self._address = i2cHexAddress
+        self._i2c = i2c
+        self._led_mode = None
+        self._pulse_width_set = None
+        
+        try:
+            self._i2c.readfrom(self._address, 1)
+        except OSError as error:
+            logger.error("(%s) I2C Error. Unable to find a MAX3010x sensor.", TAG)
+            raise SystemExit(error)
+        else:
+            logger.info("(%s) MAX3010x sensor found!", TAG)
+            
+        if not (self.checkPartID()):
+            logger.error("(%s) Wrong PartID. Unable to find a MAX3010x sensor.", TAG)
+            raise SystemExit()
+    
+    def __del__(self):
+        self.shutDown()
+        logger.info("(%s) Shutting down the sensor.", TAG)
+    
+    # Methods to read the two interrupt flags
+    def getINT1(self):
+        # Load the Interrupt 1 status (configurable) from the register
+        rev_id = self.i2c_read_register(MAX30105_INTSTAT1)
+        return rev_id
+    
+    def getINT2(self):
+        # Load the Interrupt 2 status (DIE_TEMP_DRY) from the register
+        rev_id = self.i2c_read_register(MAX30105_INTSTAT2)
+        return rev_id
+    
+    # Methods to setup the interrupt flags
+    def enableAFULL(self):
+        # Enable the almost full interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_A_FULL_MASK,
+                     MAX30105_INT_A_FULL_ENABLE)
+        
+    def disableAFULL(self):
+        # Disable the almost full interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_A_FULL_MASK,
+                     MAX30105_INT_A_FULL_DISABLE)
+        
+    def enableDATARDY(self):
+        # Enable the new FIFO data ready interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_DATA_RDY_MASK,
+                     MAX30105_INT_DATA_RDY_ENABLE)
+        
+    def disableDATARDY(self):
+        # Disable the new FIFO data ready interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_DATA_RDY_MASK,
+                     MAX30105_INT_DATA_RDY_DISABLE)
+        
+    def enableALCOVF(self):
+        # Enable the ambient light limit interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_ALC_OVF_MASK,
+                     MAX30105_INT_ALC_OVF_ENABLE)
+        
+    def disableALCOVF(self):
+        # Disable the ambient light limit interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_ALC_OVF_MASK,
+                     MAX30105_INT_ALC_OVF_DISABLE)  
+          
+    def enablePROXINT(self):
+        # Enable the proximity interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_PROX_INT_MASK,
+                     MAX30105_INT_PROX_INT_ENABLE)
+        
+    def disablePROXINT(self):
+        # Disable the proximity interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_PROX_INT_MASK,
+                     MAX30105_INT_PROX_INT_DISABLE)
+        
+    def enableDIETEMPRDY(self):
+        # Enable the die temp. conversion finish interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE2,
+                     MAX30105_INT_DIE_TEMP_RDY_MASK,
+                     MAX30105_INT_DIE_TEMP_RDY_ENABLE)
+        
+    def disableDIETEMPRDY(self):
+        # Disable the die temp. conversion finish interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE2,
+                     MAX30105_INT_DIE_TEMP_RDY_MASK,
+                     MAX30105_INT_DIE_TEMP_RDY_DISABLE)     
+    
+    # Configuration reset
+    def softReset(self):
+        # When the RESET bit is set to one, all configuration, threshold,
+        # and data registers are reset to their power-on-state through
+        # a power-on reset. The RESET bit is cleared automatically back to zero
+        # after the reset sequence is completed. (datasheet pag. 19)
+        logger.debug("(%s) Resetting the sensor.", TAG)
+        self.set_bitMask(MAX30105_MODECONFIG,
+                         MAX30105_RESET_MASK,
+                         MAX30105_RESET)
+        curr_status = -1
+        while not ( (curr_status & MAX30105_RESET) == 0 ):
+            sleep_ms(10)
+            curr_status = ord(self.i2c_read_register(MAX30105_MODECONFIG))
+    
+    # Power states methods
+    def shutDown(self):
+        # Put IC into low power mode (datasheet pg. 19)
+        # During shutdown the IC will continue to respond to I2C commands but 
+        # will not update with or take new readings (such as temperature).
+        self.set_bitMask(MAX30105_MODECONFIG,
+                         MAX30105_SHUTDOWN_MASK,
+                         MAX30105_SHUTDOWN)
+        
+    def wakeUp(self):
+        # Pull IC out of low power mode (datasheet pg. 19)
+        self.set_bitMask(MAX30105_MODECONFIG,
+                         MAX30105_SHUTDOWN_MASK,
+                         MAX30105_WAKEUP)   
+    
+    # LED Configuration
+    def setLEDMode(self, LED_MODE):
+        # Set LED mode: select which LEDs are used for sampling 
+        # Options: RED only, RED + IR only, or ALL (datasheet pag. 19)
+        available_modes = [MAX30105_MODE_REDONLY,
+                           MAX30105_MODE_REDIRONLY,
+                           MAX30105_MODE_MULTILED]
+        if LED_MODE not in available_modes:
+            raise ValueError('Wrong LED mode:{0}!'.format(LED_MODE))
+        elif LED_MODE == MAX30105_MODE_REDONLY:
+            self.set_bitMask(MAX30105_MODECONFIG,
+                             MAX30105_MODE_MASK,
+                             MAX30105_MODE_REDONLY)
+            self.i2c_set_register(MAX30105_LED1_PULSEAMP, 
+                                  MAX30105_PULSEAMP_MEDIUM) # Red
+        elif LED_MODE == MAX30105_MODE_REDIRONLY:
+            self.set_bitMask(MAX30105_MODECONFIG,
+                             MAX30105_MODE_MASK,
+                             MAX30105_MODE_REDIRONLY)
+            self.i2c_set_register(MAX30105_LED1_PULSEAMP, 
+                                  MAX30105_PULSEAMP_MEDIUM) # Red
+            self.i2c_set_register(MAX30105_LED2_PULSEAMP, 
+                                  MAX30105_PULSEAMP_MEDIUM) # IR
+        elif LED_MODE == MAX30105_MODE_MULTILED:
+            self.set_bitMask(MAX30105_MODECONFIG,
+                             MAX30105_MODE_MASK,
+                             MAX30105_MODE_MULTILED)
+            self.i2c_set_register(MAX30105_LED1_PULSEAMP, 
+                                  MAX30105_PULSEAMP_MEDIUM) # Red
+            self.i2c_set_register(MAX30105_LED2_PULSEAMP, 
+                                  MAX30105_PULSEAMP_MEDIUM) # IR
+            self.i2c_set_register(MAX30105_LED3_PULSEAMP, 
+                                  MAX30105_PULSEAMP_MEDIUM) # Green
 
-	def i2c_read_register(self, REGISTER, n_bytes=1):
-		self._i2c.writeto(self._address, bytearray([REGISTER]))
-		return self._i2c.readfrom(self._address, n_bytes)
+            # FIXME move these elsewhere
+            self.i2c_set_register(0x11, 0b00100001) #mulitledconfig1
+            self.i2c_set_register(0x12, 0b00000011) #mutliledconfig2
+            
+        # Store the LED mode
+        self._led_mode = LED_MODE
+ 
+    def CreateImage(self, value):
+        unit = (2 ** (18 - self._pulse_width_set)) // (250)
+        image_p1 = (value // (unit * 50)) * (str(9) * 5)
+        image_p2 = ((value % (unit * 50)) // (unit * 10)) * str(9)
+        points = (((value % (unit * 50)) % (unit * 10))) // unit
+        if points > 0:
+            image_p3 = str(points)
+        else:
+            image_p3 = ""
+        image_p4 = ((25) - len(image_p1 + image_p2 + image_p3)) * str(0)
+        tmp_image = image_p1 + image_p2 + image_p3 + image_p4
+        return ':'.join([tmp_image[i:i+5] for i in range(0, len(tmp_image), 5)])
 
-	def i2c_set_register(self, REGISTER, VALUE):
-		self._i2c.writeto(self._address, bytearray([REGISTER, VALUE]))
-		return
+    def i2c_read_register(self, REGISTER, n_bytes=1):
+        self._i2c.writeto(self._address, bytearray([REGISTER]))
+        return self._i2c.readfrom(self._address, n_bytes)
 
-	def set_bitMask(self, REGISTER, MASK, NEW_VALUES):
-		newCONTENTS = (ord(self.i2c_read_register(REGISTER)) & MASK) | NEW_VALUES
-		self.i2c_set_register(REGISTER, newCONTENTS)
-		return
+    def i2c_set_register(self, REGISTER, VALUE):
+        self._i2c.writeto(self._address, bytearray([REGISTER, VALUE]))
+        return
 
-	def enableSlot(self, slotNumber, device):
-		if (slotNumber == 1):
-			self.bitMask(0x11, 0xF8, 0x01) # 0x11 config1, slot mask 1, 0x01 red
-		if (slotNumber == 2):
-			self.bitMask(0x11, 0x8F, 0x02 << 4) # 0x11 config1, slot mask 2, 0x01 IR
-		if (slotNumber == 3):
-			self.bitMask(0x12, 0xF8, 0x03) # 0x11 config2, slot mask 3, 0x01 green
+    def set_bitMask(self, REGISTER, MASK, NEW_VALUES):
+        newCONTENTS = (ord(self.i2c_read_register(REGISTER)) & MASK) | NEW_VALUES
+        self.i2c_set_register(REGISTER, newCONTENTS)
+        return
 
-	def bitMask(self, reg, slotMask, thing):
-		originalContents = ord(self.i2c_read_register(reg))
-		originalContents = originalContents & slotMask
-		self.i2c_set_register(reg, originalContents | thing)
+    def enableSlot(self, slotNumber, device):
+        if (slotNumber == 1):
+            self.bitMask(0x11, 0xF8, 0x01) # 0x11 config1, slot mask 1, 0x01 red
+        if (slotNumber == 2):
+            self.bitMask(0x11, 0x8F, 0x02 << 4) # 0x11 config1, slot mask 2, 0x01 IR
+        if (slotNumber == 3):
+            self.bitMask(0x12, 0xF8, 0x03) # 0x11 config2, slot mask 3, 0x01 green
 
-	def setup_sensor(self, LED_MODE=3, LED_POWER=MAX30105_PULSEAMP_LOW,
-					 PULSE_WIDTH=MAX30105_PULSEWIDTH_118):
-		# NOTE: this function will reset the sensor's configuration
-		self.softReset()
-		
-		# TODO: pack these lines into a setpulsewidth method
-		# Pulse width of LEDs: The longer the pulse width the longer range of
-		# detection. At 69us and 0.4mA it's about 2 inches,
-		# at 411us and 0.4mA it's about 6 inches.
-		self.set_bitMask(MAX30105_PARTICLECONFIG,
-						 MAX30105_PULSEWIDTH_MASK,
-						 PULSE_WIDTH)
-		# FIXME understand this private variable meaning
-		self._pulse_width_set = PULSE_WIDTH
+    def bitMask(self, reg, slotMask, thing):
+        originalContents = ord(self.i2c_read_register(reg))
+        originalContents = originalContents & slotMask
+        self.i2c_set_register(reg, originalContents | thing)
 
-		# TODO: pack these lines into a setledmode method
-		# Set LED mode: select which LEDs are used for sampling 
-		# Options: Red only, RED+IR only, or custom (datasheet pag. 29)
-		if LED_MODE not in [1, 2, 3]:
-			raise ValueError('wrong LED mode:{0}!'.format(LED_MODE))
-		elif LED_MODE == 1:
-			self.set_bitMask(MAX30105_MODECONFIG,
-							 MAX30105_MODE_MASK,
-							 MAX30105_MODE_REDONLY)
-			self.i2c_set_register(MAX30105_LED1_PULSEAMP, LED_POWER) #red
-		elif LED_MODE == 2:
-			self.set_bitMask(MAX30105_MODECONFIG,
-							 MAX30105_MODE_MASK,
-							 MAX30105_MODE_REDIRONLY)
-			self.i2c_set_register(MAX30105_LED1_PULSEAMP, LED_POWER) #red
-			self.i2c_set_register(MAX30105_LED2_PULSEAMP, LED_POWER) #ir
-		elif LED_MODE == 3:
-			self.set_bitMask(MAX30105_MODECONFIG,
-							 MAX30105_MODE_MASK,
-							 MAX30105_MODE_MULTILED)
-			self.i2c_set_register(MAX30105_LED1_PULSEAMP, LED_POWER) #red
-			self.i2c_set_register(MAX30105_LED2_PULSEAMP, LED_POWER) #ir
-			self.i2c_set_register(MAX30105_LED3_PULSEAMP, LED_POWER) #green
-			
-			#self.setPulseAmplitudeRed(LED_POWER)
-			#self.setPulseAmplitudeIR(LED_POWER)
-			#self.setPulseAmplitudeGreen(LED_POWER)
-			#self.setPulseAmplitudeProximity(LED_POWER)
+    def setup_sensor(self, LED_MODE=3, LED_POWER=MAX30105_PULSEAMP_LOW,
+                     PULSE_WIDTH=MAX30105_PULSEWIDTH_118):
+        # NOTE: this function will reset the sensor's configuration
+        self.softReset()
+        
+        # TODO: pack these lines into a setpulsewidth method
+        # Pulse width of LEDs: The longer the pulse width the longer range of
+        # detection. At 69us and 0.4mA it's about 2 inches,
+        # at 411us and 0.4mA it's about 6 inches.
+        self.set_bitMask(MAX30105_PARTICLECONFIG,
+                         MAX30105_PULSEWIDTH_MASK,
+                         PULSE_WIDTH)
+        # FIXME understand this private variable meaning
+        self._pulse_width_set = PULSE_WIDTH
+        
+        self.setLEDMode(MAX30105_MODE_REDIRONLY)
 
+        # Sample rate: select the number of samples taken per second.
+        # NOTE: In theory, the resulting acquisition frequency for the end user
+        # is sampleRate/sampleAverage. However, it is worth testing it before 
+        # assuming that the sensor can effectively sustain that frequency
+        # given its configuration.
+        self.set_bitMask(MAX30105_PARTICLECONFIG,
+                         MAX30105_SAMPLERATE_MASK,
+                         MAX30105_SAMPLERATE_800)
+        # Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
 
-			#self.enableSlot(1, 0x01) # is this gonnna work?
-			#self.enableSlot(2, 0x02)
-			#self.enableSlot(3, 0x03)
+        # ADC range: set the range of the conversion
+        self.set_bitMask(MAX30105_PARTICLECONFIG,
+                         MAX30105_ADCRANGE_MASK,
+                         MAX30105_ADCRANGE_16384)
+        # Options: 2048, 4096, 8192, 16384
+        # Current draw: 7.81pA. 15.63pA, 31.25pA, 62.5pA per LSB.
 
-			# FIXME understand what do these lines mean
-			self.i2c_set_register(0x11, 0b00100001) #mulitledconfig1
-			self.i2c_set_register(0x12, 0b00000011) #mutliledconfig2
-		self._led_mode = LED_MODE
+        # FIFO sample avg: set the number of samples to be averaged by the chip.
+        self.set_bitMask(MAX30105_FIFOCONFIG,
+                         MAX30105_SAMPLEAVG_MASK,
+                         MAX30105_SAMPLEAVG_16)
+        # Options: MAX30105_SAMPLEAVG_1, 2, 4, 8, 16, 32
 
-		# Sample rate: select the number of samples taken per second.
-		# NOTE: In theory, the resulting acquisition frequency for the end user
-		# is sampleRate/sampleAverage. However, it is worth testing it before 
-		# assuming that the sensor can effectively sustain that frequency
-		# given its configuration.
-		self.set_bitMask(MAX30105_PARTICLECONFIG,
-						 MAX30105_SAMPLERATE_MASK,
-						 MAX30105_SAMPLERATE_800)
-		# Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
+        # FIFO rollover: enable to allow FIFO tro wrap/roll over
+        self.set_bitMask(MAX30105_FIFOCONFIG,
+                         MAX30105_ROLLOVER_MASK,
+                         MAX30105_ROLLOVER_ENABLE)
+        # Options: MAX30105_ROLLOVER_ENABLE, MAX30105_ROLLOVER_DISABLE
 
-		# ADC range: set the range of the conversion
-		self.set_bitMask(MAX30105_PARTICLECONFIG,
-						 MAX30105_ADCRANGE_MASK,
-						 MAX30105_ADCRANGE_16384)
-		# Options: 2048, 4096, 8192, 16384
-		# Current draw: 7.81pA. 15.63pA, 31.25pA, 62.5pA per LSB.
+        # clears the fifo
+        self.i2c_set_register(MAX30105_FIFOWRITEPTR, 0) # fifowriteptr
+        self.i2c_set_register(MAX30105_FIFOOVERFLOW, 0) # fifooverflow
+        self.i2c_set_register(MAX30105_FIFOREADPTR, 0) # fifoadapter
+        
+    def setSampleRate(self, amplitude):
+        self.set_bitMask(MAX30105_PARTICLECONFIG, 0xE3, 0x00)
 
-		# FIFO sample avg: set the number of samples to be averaged by the chip.
-		self.set_bitMask(MAX30105_FIFOCONFIG,
-						 MAX30105_SAMPLEAVG_MASK,
-						 MAX30105_SAMPLEAVG_16)
-		# Options: MAX30105_SAMPLEAVG_1, 2, 4, 8, 16, 32
+    def setPulseAmplitudeRed(self, amplitude):
+        self.i2c_set_register(MAX30105_LED1_PULSEAMP, amplitude)
 
-		# FIFO rollover: enable to allow FIFO tro wrap/roll over
-		self.set_bitMask(MAX30105_FIFOCONFIG,
-						 MAX30105_ROLLOVER_MASK,
-						 MAX30105_ROLLOVER_ENABLE)
-		# Options: MAX30105_ROLLOVER_ENABLE, MAX30105_ROLLOVER_DISABLE
+    def setPulseAmplitudeGreen(self, amplitude):
+        self.i2c_set_register(MAX30105_LED3_PULSEAMP, amplitude)
+    
+    def setPulseAmplitudeIR(self, amplitude):
+        self.i2c_set_register(MAX30105_LED2_PULSEAMP, amplitude)
 
-		# clears the fifo
-		self.i2c_set_register(MAX30105_FIFOWRITEPTR, 0) # fifowriteptr
-		self.i2c_set_register(MAX30105_FIFOOVERFLOW, 0) # fifooverflow
-		self.i2c_set_register(MAX30105_FIFOREADPTR, 0) # fifoadapter
-		
-	def setSampleRate(self, amplitude):
-		self.set_bitMask(MAX30105_PARTICLECONFIG, 0xE3, 0x00)
+    def setPulseAmplitudeProximity(self, amplitude):
+        self.i2c_set_register(MAX30105_LED_PROX_AMP, amplitude)
 
-	def setPulseAmplitudeRed(self, amplitude):
-		self.i2c_set_register(MAX30105_LED1_PULSEAMP, amplitude)
+    def FIFO_bytes_to_int(self, FIFO_bytes):
+        value = unpack(">i", b'\x00' + FIFO_bytes)
+        return (value[0] & 0x3FFFF) >> self._pulse_width_set
 
-	def setPulseAmplitudeGreen(self, amplitude):
-		self.i2c_set_register(MAX30105_LED3_PULSEAMP, amplitude)
-	
-	def setPulseAmplitudeIR(self, amplitude):
-		self.i2c_set_register(MAX30105_LED2_PULSEAMP, amplitude)
+    def read_sensor_multiLED(self, pointer_position):
+        sleep_ms(25)
+        self.i2c_set_register(0x06, pointer_position) #mutliled
+        fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA, self._led_mode * 3) #mode_mult
 
-	def setPulseAmplitudeProximity(self, amplitude):
-		self.i2c_set_register(MAX30105_LED_PROX_AMP, amplitude)
-
-	def FIFO_bytes_to_int(self, FIFO_bytes):
-		value = unpack(">i", b'\x00' + FIFO_bytes)
-		return (value[0] & 0x3FFFF) >> self._pulse_width_set
-
-	def read_sensor_multiLED(self, pointer_position):
-		sleep_ms(25)
-		self.i2c_set_register(0x06, pointer_position) #mutliled
-		fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA, self._led_mode * 3) #mode_mult
-
-		red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
-		IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
-		green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
-		
-		#print("[Red:", red_int, " IR:", IR_int, " G:", green_int, "]", sep='')
-		
-		return red_int, IR_int, green_int
-	
-	def readPartID(self):
-		# Load the Device ID from the register
-		part_id = self.i2c_read_register(MAX30105_PARTID)
-		return part_id
-	
-	def checkPartID(self):
-		# Checks the correctness of the Device ID
-		part_id = ord(self.readPartID())
-		return part_id == MAX_30105_EXPECTEDPARTID
-	
-	def getRevisionID(self):
-		# Load the Revision ID from the register
-		rev_id = self.i2c_read_register(MAX30105_REVISIONID)
-		return rev_id
+        red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+        IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+        green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
+        
+        #print("[Red:", red_int, " IR:", IR_int, " G:", green_int, "]", sep='')
+        
+        return red_int, IR_int, green_int
+    
+    def readPartID(self):
+        # Load the Device ID from the register
+        part_id = self.i2c_read_register(MAX30105_PARTID)
+        return part_id
+    
+    def checkPartID(self):
+        # Checks the correctness of the Device ID
+        part_id = ord(self.readPartID())
+        return part_id == MAX_30105_EXPECTEDPARTID
+    
+    def getRevisionID(self):
+        # Load the Revision ID from the register
+        rev_id = self.i2c_read_register(MAX30105_REVISIONID)
+        return rev_id
