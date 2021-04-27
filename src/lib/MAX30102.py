@@ -323,7 +323,28 @@ class MAX30102(object):
             
         # Store the LED mode
         self._led_mode = LED_MODE
- 
+
+    # ADC Configuration
+    def setADCRange(self, ADC_range):
+        # ADC range: set the range of the conversion
+        # Options: 2048, 4096, 8192, 16384
+        # Current draw: 7.81pA. 15.63pA, 31.25pA, 62.5pA per LSB.
+        if ADC_range == 2048:
+            range = MAX30105_ADCRANGE_2048
+        elif ADC_range == 4096:
+            range = MAX30105_ADCRANGE_4096
+        elif ADC_range == 8192:
+            range = MAX30105_ADCRANGE_8192
+        elif ADC_range == 16384:
+            range = MAX30105_ADCRANGE_16384
+        else:
+            raise ValueError('Wrong ADC range:{0}!'.format(ADC_range))
+            
+        self.set_bitMask(MAX30105_PARTICLECONFIG,
+                         MAX30105_ADCRANGE_MASK,
+                         range)
+
+        
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
         image_p1 = (value // (unit * 50)) * (str(9) * 5)
@@ -390,12 +411,8 @@ class MAX30102(object):
                          MAX30105_SAMPLERATE_800)
         # Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
 
-        # ADC range: set the range of the conversion
-        self.set_bitMask(MAX30105_PARTICLECONFIG,
-                         MAX30105_ADCRANGE_MASK,
-                         MAX30105_ADCRANGE_16384)
-        # Options: 2048, 4096, 8192, 16384
-        # Current draw: 7.81pA. 15.63pA, 31.25pA, 62.5pA per LSB.
+        # Set the ADC range to default value of 16384
+        self.setADCRange(16384)
 
         # FIFO sample avg: set the number of samples to be averaged by the chip.
         self.set_bitMask(MAX30105_FIFOCONFIG,
