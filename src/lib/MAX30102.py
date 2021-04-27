@@ -451,7 +451,25 @@ class MAX30102(object):
         self.set_bitMask(MAX30105_FIFOCONFIG,
                          MAX30105_ROLLOVER_MASK,
                          MAX30105_ROLLOVER_DISABLE)
-          
+    
+    def setFIFOAlmostFull(self, number_of_samples):
+        # Set number of samples to trigger the almost full interrupt (page 18)
+        # Power on default is 32 samples. Note it is reverse: 0x00 is 
+        # 32 samples, 0x0F is 17 samples
+        self.set_bitMask(MAX30105_FIFOCONFIG,
+                         MAX30105_A_FULL_MASK,
+                         number_of_samples)
+    
+    def getWritePointer(self):
+        # Read the FIFO Write Pointer from the register
+        wp = self.i2c_read_register(MAX30105_FIFOWRITEPTR)
+        return wp
+    
+    def getReadPointer(self):
+        # Read the FIFO Read Pointer from the register
+        wp = self.i2c_read_register(MAX30105_FIFOREADPTR)
+        return wp
+    
     # Time slots management for multi-LED operation mode
     def enableSlot(self, slotNumber, device):
         # In multi-LED mode, each sample is split into up to four time slots, 
