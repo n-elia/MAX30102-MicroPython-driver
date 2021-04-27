@@ -180,10 +180,79 @@ class MAX30102(object):
     def __del__(self):
         self.shutDown()
         logger.info("(%s) Shutting down the sensor.", TAG)
-        
+    
+    # Methods to read the two interrupt flags
     def getINT1(self):
-        pass
+        # Load the Interrupt 1 status (configurable) from the register
+        rev_id = self.i2c_read_register(MAX30105_INTSTAT1)
+        return rev_id
+    
+    def getINT2(self):
+        # Load the Interrupt 2 status (DIE_TEMP_DRY) from the register
+        rev_id = self.i2c_read_register(MAX30105_INTSTAT2)
+        return rev_id
+    
+    # Methods to setup the interrupt flags
+    def enableAFULL(self):
+        # Enable the almost full interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_A_FULL_MASK,
+                     MAX30105_INT_A_FULL_ENABLE)
         
+    def disableAFULL(self):
+        # Disable the almost full interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_A_FULL_MASK,
+                     MAX30105_INT_A_FULL_DISABLE)
+        
+    def enableDATARDY(self):
+        # Enable the new FIFO data ready interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_DATA_RDY_MASK,
+                     MAX30105_INT_DATA_RDY_ENABLE)
+        
+    def disableDATARDY(self):
+        # Disable the new FIFO data ready interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_DATA_RDY_MASK,
+                     MAX30105_INT_DATA_RDY_DISABLE)
+        
+    def enableALCOVF(self):
+        # Enable the ambient light limit interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_ALC_OVF_MASK,
+                     MAX30105_INT_ALC_OVF_ENABLE)
+        
+    def disableALCOVF(self):
+        # Disable the ambient light limit interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_ALC_OVF_MASK,
+                     MAX30105_INT_ALC_OVF_DISABLE)  
+          
+    def enablePROXINT(self):
+        # Enable the proximity interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_PROX_INT_MASK,
+                     MAX30105_INT_PROX_INT_ENABLE)
+        
+    def disablePROXINT(self):
+        # Disable the proximity interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE1,
+                     MAX30105_INT_PROX_INT_MASK,
+                     MAX30105_INT_PROX_INT_DISABLE)
+        
+    def enableDIETEMPRDY(self):
+        # Enable the die temp. conversion finish interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE2,
+                     MAX30105_INT_DIE_TEMP_RDY_MASK,
+                     MAX30105_INT_DIE_TEMP_RDY_ENABLE)
+        
+    def disableDIETEMPRDY(self):
+        # Disable the die temp. conversion finish interrupt (datasheet pag. 13)
+        self.bitMask(MAX30105_INTENABLE2,
+                     MAX30105_INT_DIE_TEMP_RDY_MASK,
+                     MAX30105_INT_DIE_TEMP_RDY_DISABLE)     
+            
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
         image_p1 = (value // (unit * 50)) * (str(9) * 5)
