@@ -340,6 +340,37 @@ class MAX30102(object):
                          MAX30105_ADCRANGE_MASK,
                          range)
 
+    # Sample Rate Configuration
+    def setSampleRate(self, sample_rate):
+        # Sample rate: select the number of samples taken per second.
+        # Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
+        # Note: in theory, the resulting acquisition frequency for the end user
+        # is sampleRate/sampleAverage. However, it is worth testing it before 
+        # assuming that the sensor can effectively sustain that frequency
+        # given its configuration.
+        if sample_rate == 50:
+            sr = MAX30105_SAMPLERATE_50
+        elif sample_rate == 100:
+            sr = MAX30105_SAMPLERATE_100
+        elif sample_rate == 200:
+            sr = MAX30105_SAMPLERATE_200
+        elif sample_rate == 400:
+            sr = MAX30105_SAMPLERATE_400
+        elif sample_rate == 800:
+            sr = MAX30105_SAMPLERATE_800
+        elif sample_rate == 1000:
+            sr = MAX30105_SAMPLERATE_1000
+        elif sample_rate == 1600:
+            sr = MAX30105_SAMPLERATE_1600
+        elif sample_rate == 3200:
+            sr = MAX30105_SAMPLERATE_3200
+        else:
+            raise ValueError('Wrong sample rate:{0}!'.format(sample_rate))
+            
+        self.set_bitMask(MAX30105_PARTICLECONFIG,
+                         MAX30105_SAMPLERATE_MASK,
+                         sr)
+        
         
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
@@ -397,15 +428,8 @@ class MAX30102(object):
         
         self.setLEDMode(MAX30105_MODE_REDIRONLY)
 
-        # Sample rate: select the number of samples taken per second.
-        # NOTE: In theory, the resulting acquisition frequency for the end user
-        # is sampleRate/sampleAverage. However, it is worth testing it before 
-        # assuming that the sensor can effectively sustain that frequency
-        # given its configuration.
-        self.set_bitMask(MAX30105_PARTICLECONFIG,
-                         MAX30105_SAMPLERATE_MASK,
-                         MAX30105_SAMPLERATE_800)
-        # Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
+        # Set the sample rate to the default value of 800
+        self.setSampleRate(800)
 
         # Set the ADC range to default value of 16384
         self.setADCRange(16384)
