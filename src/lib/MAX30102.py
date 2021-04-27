@@ -405,7 +405,13 @@ class MAX30102(object):
     
     def setPulseAmplitudeProximity(self, amplitude):
         self.i2c_set_register(MAX30105_LED_PROX_AMP, amplitude)
-        
+    
+    def setProximityThreshold(self, threshMSB):
+        # Set the IR ADC count that will trigger the beginning of particle-
+        # sensing mode.The threshMSB signifies only the 8 most significant-bits
+        # of the ADC count. (datasheet page 24)
+        self.i2c_set_register(MAX30105_PROXINTTHRESH, threshMSB)
+         
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
         image_p1 = (value // (unit * 50)) * (str(9) * 5)
