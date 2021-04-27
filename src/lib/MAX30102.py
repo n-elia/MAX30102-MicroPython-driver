@@ -156,7 +156,7 @@ class MAX30102(object):
                  ):
         self._address = i2cHexAddress
         self._i2c = i2c
-        self._led_mode = None
+        self._activeLEDs = None
         self._pulse_width_set = None
         
         try:
@@ -171,6 +171,49 @@ class MAX30102(object):
             logger.error("(%s) Wrong PartID. Unable to find a MAX3010x sensor.", TAG)
             raise SystemExit()
     
+    # Sensor setup method
+    def setup_sensor(self, LED_MODE=3,
+                     LED_POWER=MAX30105_PULSEAMP_LOW,
+                     PULSE_WIDTH=118):
+        # Reset the sensor's registers from previous configurations
+        self.softReset()
+        
+        # Set the number of samples to be averaged by the chip to 16
+        self.setFIFOAverage(16)
+        
+        # Allow FIFO queue to wrap/roll over
+        self.enableFIFORollover()
+        
+        # Set the LED mode to the default value of 2 (RED + IR)
+        # Note: the 3rd mode is available only with MAX30105
+        self.setLEDMode(LED_MODE)    
+            
+        # Set the ADC range to default value of 16384
+        self.setADCRange(16384)
+        
+         # Set the sample rate to the default value of 800
+        self.setSampleRate(800)
+        
+        # Set the Pulse Width to the default value of 118
+        self.setPulseWidth(PULSE_WIDTH)
+        
+        # Set the LED brightness to the default value of 'low'
+        self.setPulseAmplitudeRed(LED_POWER)
+        self.setPulseAmplitudeIR(LED_POWER)
+        self.setPulseAmplitudeGreen(LED_POWER)
+        self.setPulseAmplitudeProximity(LED_POWER)
+        
+        # Multi-LED Mode Configuration: enable the reading of the three LEDs
+        # depending on the chosen mode
+        self.enableSlot(1, SLOT_RED_LED)
+        if (LED_MODE > 1):
+            self.enableSlot(2, SLOT_IR_LED)
+        if (LED_MODE > 2):
+            self.enableSlot(3, SLOT_GREEN_LED)
+
+        # Clears the FIFO
+        self.clearFIFO()
+     
     def __del__(self):
         self.shutDown()
         logger.info("(%s) Shutting down the sensor.", TAG)
@@ -278,41 +321,27 @@ class MAX30102(object):
                          MAX30105_WAKEUP)   
     
     # LED Configuration
-    def setLEDMode(self, LED_MODE):
+    def setLEDMode(self, LED_mode):
         # Set LED mode: select which LEDs are used for sampling 
         # Options: RED only, RED + IR only, or ALL (datasheet pag. 19)        
-        if LED_MODE == MAX30105_MODE_REDONLY:
+        if LED_mode == 1:
             self.set_bitMask(MAX30105_MODECONFIG,
                              MAX30105_MODE_MASK,
                              MAX30105_MODE_REDONLY)
-            self.i2c_set_register(MAX30105_LED1_PULSEAMP, 
-                                  MAX30105_PULSEAMP_MEDIUM) # Red
-        elif LED_MODE == MAX30105_MODE_REDIRONLY:
+        elif LED_mode == 2:
             self.set_bitMask(MAX30105_MODECONFIG,
                              MAX30105_MODE_MASK,
                              MAX30105_MODE_REDIRONLY)
-            self.i2c_set_register(MAX30105_LED1_PULSEAMP, 
-                                  MAX30105_PULSEAMP_MEDIUM) # Red
-            self.i2c_set_register(MAX30105_LED2_PULSEAMP, 
-                                  MAX30105_PULSEAMP_MEDIUM) # IR
-        elif LED_MODE == MAX30105_MODE_MULTILED:
+        elif LED_mode == 3:
             self.set_bitMask(MAX30105_MODECONFIG,
                              MAX30105_MODE_MASK,
                              MAX30105_MODE_MULTILED)
-            self.i2c_set_register(MAX30105_LED1_PULSEAMP, 
-                                  MAX30105_PULSEAMP_MEDIUM) # Red
-            self.i2c_set_register(MAX30105_LED2_PULSEAMP, 
-                                  MAX30105_PULSEAMP_MEDIUM) # IR
-            self.i2c_set_register(MAX30105_LED3_PULSEAMP, 
-                                  MAX30105_PULSEAMP_MEDIUM) # Green
-            # FIXME move these elsewhere
-            self.i2c_set_register(0x11, 0b00100001) #mulitledconfig1
-            self.i2c_set_register(0x12, 0b00000011) #mutliledconfig2
         else:
-            raise ValueError('Wrong LED mode:{0}!'.format(LED_MODE))
+            raise ValueError('Wrong LED mode:{0}!'.format(LED_mode))
             
-        # Store the LED mode
-        self._led_mode = LED_MODE
+        # Store the LED mode (used to control how many bytes to read from
+        # FIFO buffer in multiLED mode)
+        self._activeLEDs = LED_mode
 
     # ADC Configuration
     def setADCRange(self, ADC_range):
@@ -529,19 +558,7 @@ class MAX30102(object):
         self.i2c_set_register(MAX30105_MULTILEDCONFIG1, 0)
         self.i2c_set_register(MAX30105_MULTILEDCONFIG2, 0)
 
-    def CreateImage(self, value):
-        unit = (2 ** (18 - self._pulse_width_set)) // (250)
-        image_p1 = (value // (unit * 50)) * (str(9) * 5)
-        image_p2 = ((value % (unit * 50)) // (unit * 10)) * str(9)
-        points = (((value % (unit * 50)) % (unit * 10))) // unit
-        if points > 0:
-            image_p3 = str(points)
-        else:
-            image_p3 = ""
-        image_p4 = ((25) - len(image_p1 + image_p2 + image_p3)) * str(0)
-        tmp_image = image_p1 + image_p2 + image_p3 + image_p4
-        return ':'.join([tmp_image[i:i+5] for i in range(0, len(tmp_image), 5)])
-
+    # Low-level I2C Communication
     def i2c_read_register(self, REGISTER, n_bytes=1):
         self._i2c.writeto(self._address, bytearray([REGISTER]))
         return self._i2c.readfrom(self._address, n_bytes)
@@ -550,44 +567,17 @@ class MAX30102(object):
         self._i2c.writeto(self._address, bytearray([REGISTER, VALUE]))
         return
 
+    # Given a register, read it, mask it, and then set the thing
     def set_bitMask(self, REGISTER, MASK, NEW_VALUES):
         newCONTENTS = (ord(self.i2c_read_register(REGISTER)) & MASK) | NEW_VALUES
         self.i2c_set_register(REGISTER, newCONTENTS)
         return
-  
+    
+    # Given a register, read it and mask it
     def bitMask(self, reg, slotMask, thing):
         originalContents = ord(self.i2c_read_register(reg))
         originalContents = originalContents & slotMask
         self.i2c_set_register(reg, originalContents | thing)
-
-    def setup_sensor(self, LED_MODE=3,
-                     LED_POWER=MAX30105_PULSEAMP_LOW,
-                     PULSE_WIDTH=118):
-        # Reset the sensor's registers from previous configurations
-        self.softReset()
-        
-        # Set the Pulse Width to the default value of 118
-        self.setPulseWidth(PULSE_WIDTH)
-        
-        # Set the LED mode to the default value of RED + IR
-        self.setLEDMode(MAX30105_MODE_REDIRONLY)
-
-        # Set the sample rate to the default value of 800
-        self.setSampleRate(800)
-
-        # Set the ADC range to default value of 16384
-        self.setADCRange(16384)
-
-        # Set the number of samples to be averaged by the chip to 16
-        self.setFIFOAverage(16)
-
-        # Allow FIFO queue to wrap/roll over
-        self.enableFIFORollover()
-
-        # clears the FIFO
-        self.clearFIFO()
-        
-    
 
     def FIFO_bytes_to_int(self, FIFO_bytes):
         value = unpack(">i", b'\x00' + FIFO_bytes)
@@ -596,7 +586,7 @@ class MAX30102(object):
     def read_sensor_multiLED(self, pointer_position):
         sleep_ms(25)
         self.i2c_set_register(0x06, pointer_position) #mutliled
-        fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA, self._led_mode * 3) #mode_mult
+        fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA, self._activeLEDs * 3) #mode_mult
 
         red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
         IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
