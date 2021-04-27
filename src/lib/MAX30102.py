@@ -370,6 +370,28 @@ class MAX30102(object):
         self.set_bitMask(MAX30105_PARTICLECONFIG,
                          MAX30105_SAMPLERATE_MASK,
                          sr)
+    
+    # Pulse width Configuration
+    def setPulseWidth(self, pulse_width):
+        # Pulse width of LEDs: The longer the pulse width the longer range of
+        # detection. At 69us and 0.4mA it's about 2 inches,
+        # at 411us and 0.4mA it's about 6 inches.
+        if pulse_width == 69:
+            pw = MAX30105_PULSEWIDTH_69
+        elif pulse_width == 118:
+            pw = MAX30105_PULSEWIDTH_118
+        elif pulse_width == 215:
+            pw = MAX30105_PULSEWIDTH_215
+        elif pulse_width == 411:
+            pw = MAX30105_PULSEWIDTH_411
+        else:
+            raise ValueError('Wrong pulse width:{0}!'.format(pulse_width))
+        self.set_bitMask(MAX30105_PARTICLECONFIG,
+                         MAX30105_PULSEWIDTH_MASK,
+                         pw)
+        
+        # Store the pulse width
+        self._pulse_width_set = pw
         
         
     def CreateImage(self, value):
@@ -413,19 +435,13 @@ class MAX30102(object):
 
     def setup_sensor(self, LED_MODE=3, LED_POWER=MAX30105_PULSEAMP_LOW,
                      PULSE_WIDTH=MAX30105_PULSEWIDTH_118):
-        # NOTE: this function will reset the sensor's configuration
+        # Reset the sensor's registers from previous configurations
         self.softReset()
         
-        # TODO: pack these lines into a setpulsewidth method
-        # Pulse width of LEDs: The longer the pulse width the longer range of
-        # detection. At 69us and 0.4mA it's about 2 inches,
-        # at 411us and 0.4mA it's about 6 inches.
-        self.set_bitMask(MAX30105_PARTICLECONFIG,
-                         MAX30105_PULSEWIDTH_MASK,
-                         PULSE_WIDTH)
-        # FIXME understand this private variable meaning
-        self._pulse_width_set = PULSE_WIDTH
+        # Set the Pulse Width to the default value of 118
+        self.setPulseWidth(PULSE_WIDTH)
         
+        # Set the LED mode to the default value of RED + IR
         self.setLEDMode(MAX30105_MODE_REDIRONLY)
 
         # Set the sample rate to the default value of 800
