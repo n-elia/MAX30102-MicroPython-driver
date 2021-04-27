@@ -1,0 +1,5 @@
+[console_scripts]
+espefuse.py = espefuse:_main
+espsecure.py = espsecure:_main
+esptool.py = esptool:_main
+

@@ -1,0 +1,4 @@
+espefuse
+espressif
+espsecure
+esptool

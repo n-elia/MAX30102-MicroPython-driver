@@ -1,0 +1,5 @@
+pyserial
+pyudev>=0.16
+
+[:sys_platform == "win32"]
+pyreadline

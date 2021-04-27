@@ -1,0 +1,13 @@
+README.rst
+bitstring.py
+setup.py
+bitstring.egg-info/PKG-INFO
+bitstring.egg-info/SOURCES.txt
+bitstring.egg-info/dependency_links.txt
+bitstring.egg-info/top_level.txt
+test/test_bitarray.py
+test/test_bits.py
+test/test_bitstore.py
+test/test_bitstream.py
+test/test_bitstring.py
+test/test_constbitstream.py
