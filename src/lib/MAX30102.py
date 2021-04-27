@@ -412,6 +412,27 @@ class MAX30102(object):
         # of the ADC count. (datasheet page 24)
         self.i2c_set_register(MAX30105_PROXINTTHRESH, threshMSB)
 
+    # FIFO averaged samples number Configuration
+    def setFIFOAverage(self, number_of_samples):
+        # FIFO sample avg: set the number of samples to be averaged by the chip.
+        # Options: MAX30105_SAMPLEAVG_1, 2, 4, 8, 16, 32
+        if number_of_samples == 1:
+            ns = MAX30105_SAMPLEAVG_1
+        elif number_of_samples == 2:
+            ns = MAX30105_SAMPLEAVG_2
+        elif number_of_samples == 4:
+            ns = MAX30105_SAMPLEAVG_4
+        elif number_of_samples == 8:
+            ns = MAX30105_SAMPLEAVG_8
+        elif number_of_samples == 16:
+            ns = MAX30105_SAMPLEAVG_16
+        elif number_of_samples == 32:
+            ns = MAX30105_SAMPLEAVG_32
+        else:
+            raise ValueError(
+                'Wrong number of samples:{0}!'.format(number_of_samples))
+        self.set_bitMask(MAX30105_FIFOCONFIG, MAX30105_SAMPLEAVG_MASK, ns)
+    
     # Time slots management for multi-LED operation mode
     def enableSlot(self, slotNumber, device):
         # In multi-LED mode, each sample is split into up to four time slots, 
