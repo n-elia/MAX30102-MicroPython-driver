@@ -411,7 +411,31 @@ class MAX30102(object):
         # sensing mode.The threshMSB signifies only the 8 most significant-bits
         # of the ADC count. (datasheet page 24)
         self.i2c_set_register(MAX30105_PROXINTTHRESH, threshMSB)
-         
+
+    # Time slots management for multi-LED operation mode
+    def enableSlot(self, slotNumber, device):
+        # In multi-LED mode, each sample is split into up to four time slots, 
+        # SLOT1 through SLOT4. These control registers determine which LED is
+        # active in each time slot. (datasheet pag 22)
+        # Devices are SLOT_RED_LED or SLOT_RED_PILOT (proximity)
+        # Assigning a SLOT_RED_LED will pulse LED
+        # Assigning a SLOT_RED_PILOT will detect the proximity
+        if   (slotNumber == 1):
+            self.bitMask(MAX30105_MULTILEDCONFIG1, MAX30105_SLOT1_MASK, device)
+        elif (slotNumber == 2):
+            self.bitMask(MAX30105_MULTILEDCONFIG1, MAX30105_SLOT2_MASK, device << 4)
+        elif (slotNumber == 3):
+            self.bitMask(MAX30105_MULTILEDCONFIG2, MAX30105_SLOT3_MASK, device)
+        elif (slotNumber == 4):
+            self.bitMask(MAX30105_MULTILEDCONFIG2, MAX30105_SLOT4_MASK, device << 4)
+        else:
+            raise ValueError('Wrong slot number:{0}!'.format(slotNumber))
+
+    def disableSlots(self):
+        # Clear all the slots assignments
+        self.i2c_set_register(MAX30105_MULTILEDCONFIG1, 0)
+        self.i2c_set_register(MAX30105_MULTILEDCONFIG2, 0)
+
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
         image_p1 = (value // (unit * 50)) * (str(9) * 5)
@@ -437,25 +461,7 @@ class MAX30102(object):
         newCONTENTS = (ord(self.i2c_read_register(REGISTER)) & MASK) | NEW_VALUES
         self.i2c_set_register(REGISTER, newCONTENTS)
         return
-
-    def enableSlot(self, slotNumber, device):
-        # In multi-LED mode, each sample is split into up to four time slots, 
-        # SLOT1 through SLOT4. These control registers determine which LED is
-        # active in each time slot. (datasheet pag 22)
-        # Devices are SLOT_RED_LED or SLOT_RED_PILOT (proximity)
-        # Assigning a SLOT_RED_LED will pulse LED
-        # Assigning a SLOT_RED_PILOT will detect the proximity
-        if   (slotNumber == 1):
-            self.bitMask(MAX30105_MULTILEDCONFIG1, MAX30105_SLOT1_MASK, device)
-        elif (slotNumber == 2):
-            self.bitMask(MAX30105_MULTILEDCONFIG1, MAX30105_SLOT2_MASK, device << 4)
-        elif (slotNumber == 3):
-            self.bitMask(MAX30105_MULTILEDCONFIG2, MAX30105_SLOT3_MASK, device)
-        elif (slotNumber == 4):
-            self.bitMask(MAX30105_MULTILEDCONFIG2, MAX30105_SLOT4_MASK, device << 4)
-        else:
-            raise ValueError('Wrong slot number:{0}!'.format(slotNumber))
-
+  
     def bitMask(self, reg, slotMask, thing):
         originalContents = ord(self.i2c_read_register(reg))
         originalContents = originalContents & slotMask
