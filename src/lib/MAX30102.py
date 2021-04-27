@@ -433,6 +433,14 @@ class MAX30102(object):
                 'Wrong number of samples:{0}!'.format(number_of_samples))
         self.set_bitMask(MAX30105_FIFOCONFIG, MAX30105_SAMPLEAVG_MASK, ns)
     
+    def clearFIFO(self, number_of_samples):
+        # Resets all points to start in a known state
+        # Datasheet page 15 recommends clearing FIFO before beginning a read
+        self.i2c_set_register(MAX30105_FIFOWRITEPTR, 0)
+        self.i2c_set_register(MAX30105_FIFOOVERFLOW, 0)
+        self.i2c_set_register(MAX30105_FIFOREADPTR, 0)
+        
+    
     # Time slots management for multi-LED operation mode
     def enableSlot(self, slotNumber, device):
         # In multi-LED mode, each sample is split into up to four time slots, 
