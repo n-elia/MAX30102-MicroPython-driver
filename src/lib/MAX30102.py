@@ -485,6 +485,26 @@ class MAX30102(object):
         # Calculate temperature (datasheet pg. 23)
         return float(tempInt) + (float(tempFrac) * 0.0625)
 
+    def setPROXINTTHRESH(self, val):
+        # Set the PROX_INT_THRESH (see proximity function on datasheet, pag 10)
+        self.i2c_set_register(MAX30105_PROXINTTHRESH, val)
+    
+    # DeviceID and Revision methods
+    def readPartID(self):
+        # Load the Device ID from the register
+        part_id = self.i2c_read_register(MAX30105_PARTID)
+        return part_id
+    
+    def checkPartID(self):
+        # Checks the correctness of the Device ID
+        part_id = ord(self.readPartID())
+        return part_id == MAX_30105_EXPECTEDPARTID
+    
+    def getRevisionID(self):
+        # Load the Revision ID from the register
+        rev_id = self.i2c_read_register(MAX30105_REVISIONID)
+        return ord(rev_id)
+
     # Time slots management for multi-LED operation mode
     def enableSlot(self, slotNumber, device):
         # In multi-LED mode, each sample is split into up to four time slots, 
@@ -586,17 +606,3 @@ class MAX30102(object):
         
         return red_int, IR_int, green_int
     
-    def readPartID(self):
-        # Load the Device ID from the register
-        part_id = self.i2c_read_register(MAX30105_PARTID)
-        return part_id
-    
-    def checkPartID(self):
-        # Checks the correctness of the Device ID
-        part_id = ord(self.readPartID())
-        return part_id == MAX_30105_EXPECTEDPARTID
-    
-    def getRevisionID(self):
-        # Load the Revision ID from the register
-        rev_id = self.i2c_read_register(MAX30105_REVISIONID)
-        return rev_id
