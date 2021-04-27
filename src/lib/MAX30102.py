@@ -433,7 +433,7 @@ class MAX30102(object):
                 'Wrong number of samples:{0}!'.format(number_of_samples))
         self.set_bitMask(MAX30105_FIFOCONFIG, MAX30105_SAMPLEAVG_MASK, ns)
     
-    def clearFIFO(self, number_of_samples):
+    def clearFIFO(self):
         # Resets all points to start in a known state
         # Datasheet page 15 recommends clearing FIFO before beginning a read
         self.i2c_set_register(MAX30105_FIFOWRITEPTR, 0)
@@ -530,10 +530,8 @@ class MAX30102(object):
         # Allow FIFO queue to wrap/roll over
         self.enableFIFORollover()
 
-        # clears the fifo
-        self.i2c_set_register(MAX30105_FIFOWRITEPTR, 0) # fifowriteptr
-        self.i2c_set_register(MAX30105_FIFOOVERFLOW, 0) # fifooverflow
-        self.i2c_set_register(MAX30105_FIFOREADPTR, 0) # fifoadapter
+        # clears the FIFO
+        self.clearFIFO()
         
     
 
