@@ -252,7 +252,31 @@ class MAX30102(object):
         self.bitMask(MAX30105_INTENABLE2,
                      MAX30105_INT_DIE_TEMP_RDY_MASK,
                      MAX30105_INT_DIE_TEMP_RDY_DISABLE)     
-            
+    
+    # Configuration reset
+    def softReset(self):
+        # When the RESET bit is set to one, all configuration, threshold,
+        # and data registers are reset to their power-on-state through
+        # a power-on reset. The RESET bit is cleared automatically back to zero
+        # after the reset sequence is completed. (datasheet pag. 19)
+        logger.debug("(%s) Resetting the sensor.", TAG)
+        self.set_bitMask(MAX30105_MODECONFIG,
+                         MAX30105_RESET_MASK,
+                         MAX30105_RESET)
+        curr_status = -1
+        while not ( (curr_status & MAX30105_RESET) == 0 ):
+            sleep_ms(10)
+            curr_status = ord(self.i2c_read_register(MAX30105_MODECONFIG))
+    
+    # Power states methods
+    def shutDown(self):
+        # Put IC into low power mode (datasheet pg. 19)
+        # During shutdown the IC will continue to respond to I2C commands but 
+        # will not update with or take new readings (such as temperature).
+        self.set_bitMask(MAX30105_MODECONFIG,
+                         MAX30105_SHUTDOWN_MASK,
+                         MAX30105_SHUTDOWN)
+        
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
         image_p1 = (value // (unit * 50)) * (str(9) * 5)
@@ -426,18 +450,3 @@ class MAX30102(object):
         # Load the Revision ID from the register
         rev_id = self.i2c_read_register(MAX30105_REVISIONID)
         return rev_id
-    
-    def softReset(self):
-        logger.debug("(%s) Resetting the sensor.", TAG)
-        self.set_bitMask(MAX30105_MODECONFIG,
-                         MAX30105_RESET_MASK,
-                         MAX30105_RESET)
-        curr_status = -1
-        while not ( (curr_status & MAX30105_RESET) == 0 ):
-            sleep_ms(10)
-            curr_status = ord(self.i2c_read_register(MAX30105_MODECONFIG))
-    
-    def shutDown(self):
-        self.set_bitMask(MAX30105_MODECONFIG,
-                         MAX30105_SHUTDOWN_MASK,
-                         MAX30105_SHUTDOWN)
