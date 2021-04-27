@@ -440,7 +440,18 @@ class MAX30102(object):
         self.i2c_set_register(MAX30105_FIFOOVERFLOW, 0)
         self.i2c_set_register(MAX30105_FIFOREADPTR, 0)
         
+    def enableFIFORollover(self):
+        # FIFO rollover: enable to allow FIFO tro wrap/roll over
+        self.set_bitMask(MAX30105_FIFOCONFIG,
+                         MAX30105_ROLLOVER_MASK,
+                         MAX30105_ROLLOVER_ENABLE)
     
+    def disableFIFORollover(self):
+        # FIFO rollover: disable to disallow FIFO tro wrap/roll over
+        self.set_bitMask(MAX30105_FIFOCONFIG,
+                         MAX30105_ROLLOVER_MASK,
+                         MAX30105_ROLLOVER_DISABLE)
+          
     # Time slots management for multi-LED operation mode
     def enableSlot(self, slotNumber, device):
         # In multi-LED mode, each sample is split into up to four time slots, 
@@ -513,17 +524,11 @@ class MAX30102(object):
         # Set the ADC range to default value of 16384
         self.setADCRange(16384)
 
-        # FIFO sample avg: set the number of samples to be averaged by the chip.
-        self.set_bitMask(MAX30105_FIFOCONFIG,
-                         MAX30105_SAMPLEAVG_MASK,
-                         MAX30105_SAMPLEAVG_16)
-        # Options: MAX30105_SAMPLEAVG_1, 2, 4, 8, 16, 32
+        # Set the number of samples to be averaged by the chip to 16
+        self.setFIFOAverage(16)
 
-        # FIFO rollover: enable to allow FIFO tro wrap/roll over
-        self.set_bitMask(MAX30105_FIFOCONFIG,
-                         MAX30105_ROLLOVER_MASK,
-                         MAX30105_ROLLOVER_ENABLE)
-        # Options: MAX30105_ROLLOVER_ENABLE, MAX30105_ROLLOVER_DISABLE
+        # Allow FIFO queue to wrap/roll over
+        self.enableFIFORollover()
 
         # clears the fifo
         self.i2c_set_register(MAX30105_FIFOWRITEPTR, 0) # fifowriteptr
