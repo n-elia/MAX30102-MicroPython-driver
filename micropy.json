@@ -1,0 +1,16 @@
+{
+    "name": "MAX30102-MicroPython-driver",
+    "stubs": {
+        "esp32-micropython-1.12.0": "1.3.2"
+    },
+    "dev-packages": {
+        "micropy-cli": "*"
+    },
+    "packages": {
+        "logging": "*"
+    },
+    "config": {
+        "vscode": true,
+        "pylint": true
+    }
+}

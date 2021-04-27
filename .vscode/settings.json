@@ -1,0 +1,23 @@
+{
+    "python.linting.enabled": true,
+    "python.jediEnabled": false,
+    "python.autoComplete.extraPaths": [
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\frozen",
+        ".micropy\\BradenM-micropy-stubs-e1b8ce6\\frozen",
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\stubs",
+        ".micropy\\MAX30102-MicroPython-driver"
+    ],
+    "python.autoComplete.typeshedPaths": [
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\frozen",
+        ".micropy\\BradenM-micropy-stubs-e1b8ce6\\frozen",
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\stubs",
+        ".micropy\\MAX30102-MicroPython-driver"
+    ],
+    "python.analysis.typeshedPaths": [
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\frozen",
+        ".micropy\\BradenM-micropy-stubs-e1b8ce6\\frozen",
+        ".micropy\\BradenM-micropy-stubs-3cc928b\\stubs",
+        ".micropy\\MAX30102-MicroPython-driver"
+    ],
+    "python.linting.pylintEnabled": true
+}
