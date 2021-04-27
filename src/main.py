@@ -11,3 +11,4 @@ if __name__ == '__main__':
 	# Setup the sensor with default configuration
 	sensor.setup_sensor()
  	print(sensor.readTemperature())
+  

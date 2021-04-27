@@ -540,7 +540,8 @@ class MAX30102(object):
         originalContents = originalContents & slotMask
         self.i2c_set_register(reg, originalContents | thing)
 
-    def setup_sensor(self, LED_MODE=3, LED_POWER=MAX30105_PULSEAMP_LOW,
+    def setup_sensor(self, LED_MODE=3,
+                     LED_POWER=MAX30105_PULSEAMP_LOW,
                      PULSE_WIDTH=118):
         # Reset the sensor's registers from previous configurations
         self.softReset()
