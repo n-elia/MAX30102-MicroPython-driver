@@ -392,7 +392,19 @@ class MAX30102(object):
         
         # Store the pulse width
         self._pulse_width_set = pw
+    
+    # LED Pulse Amplitude Configuration methods
+    def setPulseAmplitudeRed(self, amplitude):
+        self.i2c_set_register(MAX30105_LED1_PULSEAMP, amplitude)
         
+    def setPulseAmplitudeIR(self, amplitude):
+        self.i2c_set_register(MAX30105_LED2_PULSEAMP, amplitude)
+        
+    def setPulseAmplitudeGreen(self, amplitude):
+        self.i2c_set_register(MAX30105_LED3_PULSEAMP, amplitude)
+    
+    def setPulseAmplitudeProximity(self, amplitude):
+        self.i2c_set_register(MAX30105_LED_PROX_AMP, amplitude)
         
     def CreateImage(self, value):
         unit = (2 ** (18 - self._pulse_width_set)) // (250)
@@ -467,17 +479,7 @@ class MAX30102(object):
         self.i2c_set_register(MAX30105_FIFOOVERFLOW, 0) # fifooverflow
         self.i2c_set_register(MAX30105_FIFOREADPTR, 0) # fifoadapter
         
-    def setPulseAmplitudeRed(self, amplitude):
-        self.i2c_set_register(MAX30105_LED1_PULSEAMP, amplitude)
-        
-    def setPulseAmplitudeIR(self, amplitude):
-        self.i2c_set_register(MAX30105_LED2_PULSEAMP, amplitude)
-        
-    def setPulseAmplitudeGreen(self, amplitude):
-        self.i2c_set_register(MAX30105_LED3_PULSEAMP, amplitude)
     
-    def setPulseAmplitudeProximity(self, amplitude):
-        self.i2c_set_register(MAX30105_LED_PROX_AMP, amplitude)
 
     def FIFO_bytes_to_int(self, FIFO_bytes):
         value = unpack(">i", b'\x00' + FIFO_bytes)
