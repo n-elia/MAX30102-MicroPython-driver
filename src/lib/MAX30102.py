@@ -192,7 +192,7 @@ class MAX30102(object):
             raise SystemExit()
     
     # Sensor setup method
-    def setup_sensor(self, LED_MODE=2,
+    def setup_sensor(self, LED_MODE=2, ADC_RANGE=16384, SAMPLE_RATE=800,
                      LED_POWER=MAX30105_PULSEAMP_LOW,
                      PULSE_WIDTH=118):
         # Reset the sensor's registers from previous configurations
@@ -209,10 +209,10 @@ class MAX30102(object):
         self.setLEDMode(LED_MODE)    
             
         # Set the ADC range to default value of 16384
-        self.setADCRange(16384)
+        self.setADCRange(ADC_RANGE)
         
          # Set the sample rate to the default value of 800
-        self.setSampleRate(800)
+        self.setSampleRate(SAMPLE_RATE)
         
         # Set the Pulse Width to the default value of 118
         self.setPulseWidth(PULSE_WIDTH)
