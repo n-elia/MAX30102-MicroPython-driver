@@ -2,6 +2,9 @@
 
 from lib.MAX30102 import MAX30102
 from utime import ticks_ms
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 if __name__ == '__main__':
     sensor = MAX30102()  # Loads default ESP32 I2C configuration
