@@ -19,7 +19,7 @@
         ".micropy\\BradenM-micropy-stubs-3cc928b\\stubs",
         ".micropy\\MAX30102-MicroPython-driver"
     ],
-    "python.linting.pylintEnabled": false,
+    "python.linting.pylintEnabled": true,
     "python.languageServer": "Pylance",
     "python.analysis.extraPaths": [
         ".micropy\\BradenM-micropy-stubs-3cc928b\\frozen",
