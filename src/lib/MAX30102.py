@@ -311,6 +311,7 @@ class MAX30102(object):
     
     # Configuration reset
     def softReset(self):
+        TAG = 'softReset'
         # When the RESET bit is set to one, all configuration, threshold,
         # and data registers are reset to their power-on-state through
         # a power-on reset. The RESET bit is cleared automatically back to zero
@@ -384,6 +385,7 @@ class MAX30102(object):
 
     # Sample Rate Configuration
     def setSampleRate(self, sample_rate):
+        TAG = 'setSampleRate'
         # Sample rate: select the number of samples taken per second.
         # Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
         # Note: in theory, the resulting acquisition frequency for the end user
@@ -415,6 +417,7 @@ class MAX30102(object):
     
     # Pulse width Configuration
     def setPulseWidth(self, pulse_width):
+        TAG = 'setPulseWidth'
         # Pulse width of LEDs: The longer the pulse width the longer range of
         # detection. At 69us and 0.4mA it's about 2 inches,
         # at 411us and 0.4mA it's about 6 inches.
@@ -431,6 +434,8 @@ class MAX30102(object):
         self.set_bitMask(MAX30105_PARTICLECONFIG,
                          MAX30105_PULSEWIDTH_MASK,
                          pw)
+        
+        logger.debug("(%s) Setting pulse width to %d.", TAG, pulse_width)
         
         # Store the pulse width
         self._pulse_width_set = pw
@@ -456,6 +461,7 @@ class MAX30102(object):
 
     # FIFO averaged samples number Configuration
     def setFIFOAverage(self, number_of_samples):
+        TAG = 'setFIFOAverage'
         # FIFO sample avg: set the number of samples to be averaged by the chip.
         # Options: MAX30105_SAMPLEAVG_1, 2, 4, 8, 16, 32
         if number_of_samples == 1:
@@ -474,7 +480,11 @@ class MAX30102(object):
             raise ValueError(
                 'Wrong number of samples:{0}!'.format(number_of_samples))
         self.set_bitMask(MAX30105_FIFOCONFIG, MAX30105_SAMPLEAVG_MASK, ns)
-    
+        
+        logger.debug("(%s) Setting FIFO avg samples to %d.", TAG,
+                     number_of_samples)
+        
+        
     def clearFIFO(self):
         # Resets all points to start in a known state
         # Datasheet page 15 recommends clearing FIFO before beginning a read
