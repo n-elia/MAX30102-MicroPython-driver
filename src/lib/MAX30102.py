@@ -25,7 +25,6 @@ from utime import sleep_ms
 import logging
 
 # Setup of logger
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("MAX30102")
 
 # TODO: parametrize the i2c just to avoid being hardcoded for esp32 only
