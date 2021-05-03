@@ -4,9 +4,9 @@ from lib.MAX30102 import MAX30102
 from utime import ticks_ms
 import logging
 
+if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     
-if __name__ == '__main__':
     sensor = MAX30102()  # Loads default ESP32 I2C configuration
     # sensor = ParticleSensor(i2cHexAddress = 0x57)
     # sensor = ParticleSensor(i2cHexAddress = 0x57, i2c = i2cInstance)
@@ -29,13 +29,14 @@ if __name__ == '__main__':
             sensor_data = sensor.read_sensor_multiLED(FIFO_pointer)
             # red_array.append(sensor_data[0])
             # ir_array.append(sensor_data[1])
-            # print(sensor_data)
-            # print(sensor_data[0])
-            samples_n=samples_n+1
-            if (ticks_ms()-t_start) > 999:
-                f_HZ = samples_n/1
-                samples_n = 0
-                t_start = ticks_ms()
-                print("frequency = ",f_HZ)
+            if sensor_data is not None:
+                # print(sensor_data)
+                # print(sensor_data[0])
+                samples_n=samples_n+1
+                if (ticks_ms()-t_start) > 999:
+                    f_HZ = samples_n/1
+                    samples_n = 0
+                    t_start = ticks_ms()
+                    print("frequency = ",f_HZ)
         
     

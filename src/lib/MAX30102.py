@@ -422,7 +422,7 @@ class MAX30102(object):
         self.set_bitMask(MAX30105_PARTICLECONFIG,
                          MAX30105_SAMPLERATE_MASK,
                          sr)
-    
+        
         logger.debug("(%s) Setting sample rate to %d.", TAG, sample_rate)
         
         # Store the sample rate and recompute the acq. freq.
@@ -659,25 +659,25 @@ class MAX30102(object):
         if not self.isTimeoutElapsed():
             return None
         else:
-        self.i2c_set_register(0x06, pointer_position) #mutliled
+            self.i2c_set_register(0x06, pointer_position) #mutliled
             fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA,
                                                 self._multiLedReadMode) #mode_mult
 
-        if (self._activeLEDs == 1):
-            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            if (self._activeLEDs == 1):
+                red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
                 self.updateTimeoutTick()
-            return red_int
-        
+                return red_int
+            
             elif (self._activeLEDs == 2):
-            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
-            IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+                red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+                IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
                 self.updateTimeoutTick()
-            return red_int, IR_int
-        
-        else:
-            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
-            IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
-            green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
+                return red_int, IR_int
+            
+            else:
+                red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+                IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+                green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
                 self.updateTimeoutTick()
-            return red_int, IR_int, green_int
+                return red_int, IR_int, green_int
  
