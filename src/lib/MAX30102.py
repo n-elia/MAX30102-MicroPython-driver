@@ -183,7 +183,6 @@ class MAX30102(object):
         self._sampleAvg  = None
         self._acqFrequency = None
         self._acqFrequencyinv = None
-        self._lastAcquisition = None
         
         try:
             self._i2c.readfrom(self._address, 1)
@@ -366,8 +365,8 @@ class MAX30102(object):
         else:
             raise ValueError('Wrong LED mode:{0}!'.format(LED_mode))
             
-        # Store the LED mode (used to control how many bytes to read from
-        # FIFO buffer in multiLED mode)
+        # Store the LED mode used to control how many bytes to read from
+        # FIFO buffer in multiLED mode: a sample is made of 3 bytes
         self._activeLEDs = LED_mode
         self._multiLedReadMode = LED_mode * 3
 
@@ -643,41 +642,72 @@ class MAX30102(object):
         value = unpack(">i", b'\x00' + FIFO_bytes)
         return (value[0] & 0x3FFFF) >> self._pulseWidth
     
-    def isTimeoutElapsed(self):
-        if (self._lastAcquisition == None):
-            self.updateTimeoutTick()
-            return True
-        elif (ticks_diff(ticks_ms(), self._lastAcquisition) < (self._acqFrequencyInv)):
-            return False
+    def continuous_read(self):
+        # The circular FIFO depth is 32 and can hold up to 32 samples of data. 
+        # The sample size depends on the number of LED channels configured as 
+        # active. As each channel signal is stored as a 3-byte data signal, 
+        # the FIFO width can be 3 bytes, 6 bytes, 9 bytes, or 12 bytes in size.
+        
+        # When reading the MAX30105_FIFODATA register, the address pointer 
+        # MAX30105_FIFOREADPTR increments, but the FIFO DATA register address 
+        # remains unchanged (i.e. you'll read the same thing again and again)
+        # Therefore, the FIFO has to be cleaned before taking a measure.
+        
+        # To continuously read a register, we can clear the FIFO and read the
+        # first sample of each channel (i.e. of each LED). We need to wait 
+        # before taking the reading, to allow the sensor to take the measure.
+        self.clearFIFO()
+        sleep_ms(self._acqFrequencyInv)
+        
+        # Read the FIFO DATA register. Each channel (i.e. each LED) contains 3
+        # bytes composing the data sample of that channel. This means that we
+        # need to read 3 bytes per each sample. Based on the number of active 
+        # LEDs, we'll have 3, 6 or 9 bytes to be read.
+        fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA,
+                                            self._multiLedReadMode)
+
+        if (self._activeLEDs == 1):
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            return red_int
+        
+        elif (self._activeLEDs == 2):
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+            return red_int, IR_int
+        
         else:
-            return True
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+            green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
+            return red_int, IR_int, green_int
+        
+    def read_FIFO_on_position(self, pointer_position):
+        # Read a sample from the 32-samples FIFO circular queue.
+        # Note: remember to clear the FIFO before reading.
+        self.i2c_set_register(MAX30105_FIFOREADPTR, pointer_position)
+        
+        # Wait to allow the sensor to take the measure
+        sleep_ms(self._acqFrequencyInv)
+        
+        # Read the FIFO register. Each channel (i.e. each LED) contains 3 bytes
+        # that compose the dara reading of that channel. This means that we
+        # need to read 3 bytes per each sample. Based on the number of active 
+        # LEDs, we'll have 3, 6 or 9 bytes to be read.
+        fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA,
+                                            self._multiLedReadMode)
+
+        if (self._activeLEDs == 1):
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            return red_int
+        
+        elif (self._activeLEDs == 2):
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+            return red_int, IR_int
+        
+        else:
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+            green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
+            return red_int, IR_int, green_int
     
-    def updateTimeoutTick(self):
-        self._lastAcquisition = ticks_ms()
-
-    def read_sensor_multiLED(self, pointer_position):
-        if not self.isTimeoutElapsed():
-            return None
-        else:
-            self.i2c_set_register(0x06, pointer_position) #mutliled
-            fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA,
-                                                self._multiLedReadMode) #mode_mult
-
-            if (self._activeLEDs == 1):
-                red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
-                self.updateTimeoutTick()
-                return red_int
-            
-            elif (self._activeLEDs == 2):
-                red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
-                IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
-                self.updateTimeoutTick()
-                return red_int, IR_int
-            
-            else:
-                red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
-                IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
-                green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
-                self.updateTimeoutTick()
-                return red_int, IR_int, green_int
- 
