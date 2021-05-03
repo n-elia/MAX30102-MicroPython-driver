@@ -604,15 +604,21 @@ class MAX30102(object):
         return (value[0] & 0x3FFFF) >> self._pulse_width_set
 
     def read_sensor_multiLED(self, pointer_position):
-        sleep_ms(25)
         self.i2c_set_register(0x06, pointer_position) #mutliled
         fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA, self._activeLEDs * 3) #mode_mult
 
-        red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
-        IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
-        green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
+        if (self._activeLEDs == 1):
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            return red_int
         
-        #print("[Red:", red_int, " IR:", IR_int, " G:", green_int, "]", sep='')
+        if (self._activeLEDs == 2):
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+            return red_int, IR_int
         
-        return red_int, IR_int, green_int
-    
+        else:
+            red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+            IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+            green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
+            return red_int, IR_int, green_int
+ 
