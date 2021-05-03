@@ -192,7 +192,7 @@ class MAX30102(object):
             raise SystemExit()
     
     # Sensor setup method
-    def setup_sensor(self, LED_MODE=3,
+    def setup_sensor(self, LED_MODE=2,
                      LED_POWER=MAX30105_PULSEAMP_LOW,
                      PULSE_WIDTH=118):
         # Reset the sensor's registers from previous configurations
