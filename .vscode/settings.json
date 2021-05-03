@@ -29,5 +29,6 @@
     ],
     "python.linting.flake8Enabled": false,
     "python.linting.pylamaEnabled": false,
-    "python.linting.mypyEnabled": true
+    "python.linting.mypyEnabled": true,
+    "python.pythonPath": "c:\\Users\\nicol\\Documents\\GitHub\\MAX30102-MicroPython-driver\\venv\\Scripts\\python.exe"
 }
