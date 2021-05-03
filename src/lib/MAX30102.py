@@ -176,6 +176,13 @@ class MAX30102(object):
         self._address = i2cHexAddress
         self._i2c = i2c
         self._activeLEDs = None
+        self._pulseWidth = None
+        self._multiLedReadMode = None
+        # Store current config values to compute acquisition frequency
+        self._sampleRate = None
+        self._sampleAvg  = None
+        self._acqFrequency = None
+        self._acqFrequencyinv = None
         self._lastAcquisition = None
         
         try:
@@ -362,6 +369,7 @@ class MAX30102(object):
         # Store the LED mode (used to control how many bytes to read from
         # FIFO buffer in multiLED mode)
         self._activeLEDs = LED_mode
+        self._multiLedReadMode = LED_mode * 3
 
     # ADC Configuration
     def setADCRange(self, ADC_range):
@@ -415,6 +423,12 @@ class MAX30102(object):
                          MAX30105_SAMPLERATE_MASK,
                          sr)
     
+        logger.debug("(%s) Setting sample rate to %d.", TAG, sample_rate)
+        
+        # Store the sample rate and recompute the acq. freq.
+        self._sampleRate = sample_rate
+        self.updateAcquisitionFrequency()
+    
     # Pulse width Configuration
     def setPulseWidth(self, pulse_width):
         TAG = 'setPulseWidth'
@@ -438,7 +452,7 @@ class MAX30102(object):
         logger.debug("(%s) Setting pulse width to %d.", TAG, pulse_width)
         
         # Store the pulse width
-        self._pulse_width_set = pw
+        self._pulseWidth = pw
     
     # LED Pulse Amplitude Configuration methods
     def setPulseAmplitudeRed(self, amplitude):
@@ -484,6 +498,23 @@ class MAX30102(object):
         logger.debug("(%s) Setting FIFO avg samples to %d.", TAG,
                      number_of_samples)
         
+        # Store the number of averaged samples and recompute the acq. freq.
+        self._sampleAvg = number_of_samples
+        self.updateAcquisitionFrequency()
+        
+    def updateAcquisitionFrequency(self):
+        TAG = 'updateAcquisitionFrequency'
+        if (None in [self._sampleRate, self._sampleAvg]):
+            logger.debug("(%s) Unable to compute acq freq..", TAG)
+            return
+        else:
+            self._acqFrequency = self._sampleRate / self._sampleAvg
+            from math import ceil
+            # Compute the time interval to wait before taking a good measure
+            # (see note in setSampleRate() method)
+            self._acqFrequencyInv = int(ceil(1000/self._acqFrequency))
+            logger.info("(%s) Acq. frequency: %f Hz", TAG, self._acqFrequency)
+            logger.info("(%s) Acq. period: %f ms", TAG, self._acqFrequencyInv)
         
     def clearFIFO(self):
         # Resets all points to start in a known state
@@ -625,21 +656,28 @@ class MAX30102(object):
         self._lastAcquisition = ticks_ms()
 
     def read_sensor_multiLED(self, pointer_position):
+        if not self.isTimeoutElapsed():
+            return None
+        else:
         self.i2c_set_register(0x06, pointer_position) #mutliled
-        fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA, self._activeLEDs * 3) #mode_mult
+            fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA,
+                                                self._multiLedReadMode) #mode_mult
 
         if (self._activeLEDs == 1):
             red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
+                self.updateTimeoutTick()
             return red_int
         
-        if (self._activeLEDs == 2):
+            elif (self._activeLEDs == 2):
             red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
             IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
+                self.updateTimeoutTick()
             return red_int, IR_int
         
         else:
             red_int = self.FIFO_bytes_to_int(fifo_bytes[0:3])
             IR_int = self.FIFO_bytes_to_int(fifo_bytes[3:6])
             green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
+                self.updateTimeoutTick()
             return red_int, IR_int, green_int
  
