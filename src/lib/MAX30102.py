@@ -20,7 +20,7 @@ This code is being tested on TinyPico Board with Maxim original sensors.
 
 from ustruct import unpack
 from machine import SoftI2C, Pin
-from utime import sleep_ms
+from utime import sleep_ms, ticks_ms, ticks_diff
 
 import logging
 
@@ -176,7 +176,7 @@ class MAX30102(object):
         self._address = i2cHexAddress
         self._i2c = i2c
         self._activeLEDs = None
-        self._pulse_width_set = None
+        self._lastAcquisition = None
         
         try:
             self._i2c.readfrom(self._address, 1)
@@ -610,7 +610,19 @@ class MAX30102(object):
 
     def FIFO_bytes_to_int(self, FIFO_bytes):
         value = unpack(">i", b'\x00' + FIFO_bytes)
-        return (value[0] & 0x3FFFF) >> self._pulse_width_set
+        return (value[0] & 0x3FFFF) >> self._pulseWidth
+    
+    def isTimeoutElapsed(self):
+        if (self._lastAcquisition == None):
+            self.updateTimeoutTick()
+            return True
+        elif (ticks_diff(ticks_ms(), self._lastAcquisition) < (self._acqFrequencyInv)):
+            return False
+        else:
+            return True
+    
+    def updateTimeoutTick(self):
+        self._lastAcquisition = ticks_ms()
 
     def read_sensor_multiLED(self, pointer_position):
         self.i2c_set_register(0x06, pointer_position) #mutliled
