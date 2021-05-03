@@ -193,13 +193,13 @@ class MAX30102(object):
     
     # Sensor setup method
     def setup_sensor(self, LED_MODE=2, ADC_RANGE=16384, SAMPLE_RATE=800,
-                     LED_POWER=MAX30105_PULSEAMP_LOW,
+                     LED_POWER=MAX30105_PULSEAMP_HIGH, SAMPLE_AVG=8,
                      PULSE_WIDTH=118):
         # Reset the sensor's registers from previous configurations
         self.softReset()
         
-        # Set the number of samples to be averaged by the chip to 16
-        self.setFIFOAverage(16)
+        # Set the number of samples to be averaged by the chip to 8
+        self.setFIFOAverage(SAMPLE_AVG)
         
         # Allow FIFO queue to wrap/roll over
         self.enableFIFORollover()
