@@ -20,6 +20,10 @@ This work is a lot based on:
 
   A port of the library to MicroPython by **kandizzy**
 
+## Disclaimer
+
+This work is not intended to be used in professional environments, and there are no guarantees on its functionalities. Please do not rely on it for medical purposes or professional usage.
+
 ## Repository organisation
 
 Driver: src/lib/MAX30102.py
