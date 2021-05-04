@@ -149,3 +149,6 @@ dmypy.json
 .vscode/extensions.json
 .vscode/settings.json
 .pylintrc
+micropy.json
+pymakr.conf
+tinypico-20210418-v1.15.bin
