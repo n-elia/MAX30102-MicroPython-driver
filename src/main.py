@@ -31,7 +31,7 @@ if __name__ == '__main__':
     samples_n=0
     
     # Select the mode that you want to try:
-    select_mode = 1
+    select_mode = 3
     compute_frequency = False
     
     if (select_mode == 1):
@@ -57,3 +57,8 @@ if __name__ == '__main__':
                             samples_n = 0
                             t_start = ticks_ms()
                             print("acquisition frequency = ",f_HZ)
+    
+    elif (select_mode == 3):
+        while(True):
+            red_reading = sensor.getRed()
+            print(red_reading)

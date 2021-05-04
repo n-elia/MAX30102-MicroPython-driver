@@ -21,6 +21,7 @@ This code is being tested on TinyPico Board with Maxim original sensors.
 from ustruct import unpack
 from machine import SoftI2C, Pin
 from utime import sleep_ms, ticks_ms, ticks_diff
+from collections import deque
 
 import logging
 
@@ -165,6 +166,19 @@ MAX_30105_EXPECTEDPARTID = 0x15;
 
 TAG = 'MAX30105'
 
+# Size of the queued readings
+STORAGE_QUEUE_SIZE = 4
+
+# Data structure to hold the last readings
+class SensorData():
+    def __init__(self):
+        self.red = deque(maxsize=STORAGE_QUEUE_SIZE)
+        self.IR  = deque(maxsize=STORAGE_QUEUE_SIZE)
+        self.green = deque(maxsize=STORAGE_QUEUE_SIZE)
+        #FIXME: delete??
+        self.head = 0
+        self.tail = 0
+
 # Sensor class
 class MAX30102(object):
     def __init__(self,
@@ -183,6 +197,8 @@ class MAX30102(object):
         self._sampleAvg  = None
         self._acqFrequency = None
         self._acqFrequencyinv = None
+        # Circular buffer of readings from the sensor
+        self.sense = SensorData()
         
         try:
             self._i2c.readfrom(self._address, 1)
@@ -711,3 +727,140 @@ class MAX30102(object):
             green_int = self.FIFO_bytes_to_int(fifo_bytes[6:9])
             return red_int, IR_int, green_int
     
+    # Returns how many samples are available
+    def available(self):
+        numberOfSamples = len(self.sense.red)
+        return numberOfSamples
+    
+    # Get a new red value
+    def getRed(self):
+        # Check the sensor for new data for 250ms
+        if (self.safeCheck(250)):
+            return self.sense.red.popleft()
+        else:
+            # Sensor failed to find new data
+            return 0
+    
+    # Get a new IR value
+    def getIR(self):
+        # Check the sensor for new data for 250ms
+        if (self.safeCheck(250)):
+            return self.sense.IR.popleft()
+        else:
+            # Sensor failed to find new data
+            return 0
+    
+    # Get a new green value
+    def getGreen(self):
+        # Check the sensor for new data for 250ms
+        if (self.safeCheck(250)):
+            return self.sense.green.popleft()
+        else:
+            # Sensor failed to find new data
+            return 0
+    
+    # Note: the following 3 functions are the equivalent of using 'getFIFO'
+    # methods of the SparkFun library
+    # Pops the next red value in storage (if available)
+    def popRedFromStorage(self):
+        if (len(self.sense.red) == 0):
+            return 0
+        else:
+            return self.sense.red.pop()
+    
+    # Pops the next IR value in storage (if available)
+    def popIRFromStorage(self):
+        if (len(self.sense.IR) == 0):
+            return 0
+        else:
+            return self.sense.IR.pop()
+        
+    # Pops the next green value in storage (if available)
+    def popGreenFromStorage(self):
+        if (len(self.sense.green) == 0):
+            return 0
+        else:
+            return self.sense.green.pop()
+    
+    def nextSample(self):
+        if(self.available()):
+            # With respect to the SparkFun library, using a deque object 
+            # allows us to avoid manually advancing of the tail
+            return True
+
+    # Polls the sensor for new data
+    def check(self):
+        # I2C buffer length for burst read (32 bytes for ESP32)
+        I2C_BUFFER_LENGTH = 32
+        
+        # Call continuously to poll the sensor for new data.
+        readPointer = self.getReadPointer()
+        writePointer = self.getWritePointer()
+        numberOfSamples = 0
+        
+        # Do we have new data?
+        if (readPointer != writePointer):
+            # Calculate the number of readings we need to get from sensor
+            numberOfSamples = writePointer - readPointer
+            # Wrap condition (return to the beginning of 32 samples)
+            if (numberOfSamples < 0):
+                numberOfSamples += 32
+            
+            # Calcunate the number of bytes to read
+            bytesLeftToRead = numberOfSamples * self._activeLEDs * 3
+            
+            # Get ready to burst read from FIFO register
+            self._i2c.writeto(self._address, bytearray([MAX30105_FIFODATA]))
+            
+            # The data to be read can be up to 288 bytes, but we can read it
+            # in chuncks of the I2C buffer size
+            while (bytesLeftToRead > 0):
+                toGet = bytesLeftToRead
+                if (toGet > I2C_BUFFER_LENGTH):
+                    #Trim toGet to be a multiple of the samples we need to read
+                    toGet = I2C_BUFFER_LENGTH - (I2C_BUFFER_LENGTH %
+                                                 (self._activeLEDs * 3))
+                bytesLeftToRead -= toGet
+                
+                while (toGet > 0):
+                    # FIXME: delete??
+                    # Advance the head of the storage queue
+                    # self.sense.head += 1
+                    # Wrap to avoid overflow of queues
+                    # self.sense.head %= STORAGE_QUEUE_SIZE
+                    
+                    # Burst toGet number of bytes from sensor
+                    fifo_bytes = self._i2c.readfrom(self._address, toGet)
+            
+                    # Convert the readings from bytes to integers, depending
+                    # on the number of active LEDs
+                    if (self._activeLEDs == 1):
+                        self.sense.red.append(
+                            self.FIFO_bytes_to_int(fifo_bytes[0:3])
+                        )
+                    
+                    if (self._activeLEDs == 2):
+                        self.sense.IR.append(
+                            self.FIFO_bytes_to_int(fifo_bytes[3:6])
+                        )
+                    
+                    if (self._activeLEDs == 3):
+                        self.sense.green.append(
+                            self.FIFO_bytes_to_int(fifo_bytes[6:9])
+                        )
+                    
+                    toGet -= self._activeLEDs * 3
+        
+        return numberOfSamples
+    
+    # Check for new data but give up after a certain amount of time
+    def safeCheck(self, maxTimeToCheck):
+        markTime = ticks_ms()
+        while(True):
+            if (ticks_diff(ticks_ms(), markTime) > maxTimeToCheck):
+                # Timeout reached
+                return False
+            if (self.check() == True):
+                # new data found
+                return True
+            sleep_ms(1)
