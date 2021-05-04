@@ -148,3 +148,4 @@ dmypy.json
 !src/lib
 .vscode/extensions.json
 .vscode/settings.json
+.pylintrc
