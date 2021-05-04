@@ -146,3 +146,5 @@ dmypy.json
 .micropy/
 !micropy.json
 !src/lib
+.vscode/extensions.json
+.vscode/settings.json
