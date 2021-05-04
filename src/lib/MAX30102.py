@@ -280,14 +280,6 @@ class MAX30102(object):
         self.setPulseAmplitudeIR(LED_POWER)
         self.setPulseAmplitudeGreen(LED_POWER)
         self.setPulseAmplitudeProximity(LED_POWER)
-        
-        # Multi-LED Mode Configuration: enable the reading of the three LEDs
-        # depending on the chosen mode
-        self.enableSlot(1, SLOT_RED_LED)
-        if (LED_MODE > 1):
-            self.enableSlot(2, SLOT_IR_LED)
-        if (LED_MODE > 2):
-            self.enableSlot(3, SLOT_GREEN_LED)
 
         # Clears the FIFO
         self.clearFIFO()
@@ -417,6 +409,14 @@ class MAX30102(object):
                              MAX30105_MODE_MULTILED)
         else:
             raise ValueError('Wrong LED mode:{0}!'.format(LED_mode))
+        
+        # Multi-LED Mode Configuration: enable the reading of the LEDs
+        # depending on the chosen mode
+        self.enableSlot(1, SLOT_RED_LED)
+        if (LED_mode > 1):
+            self.enableSlot(2, SLOT_IR_LED)
+        if (LED_mode > 2):
+            self.enableSlot(3, SLOT_GREEN_LED)
             
         # Store the LED mode used to control how many bytes to read from
         # FIFO buffer in multiLED mode: a sample is made of 3 bytes
@@ -507,6 +507,14 @@ class MAX30102(object):
         self._pulseWidth = pw
     
     # LED Pulse Amplitude Configuration methods
+    def setActiveLEDsAmplitude(self, amplitude):
+        if (self._activeLEDs > 0):
+            self.setPulseAmplitudeRed(amplitude)
+        if (self._activeLEDs > 1):
+            self.setPulseAmplitudeIR(amplitude)
+        if(self._activeLEDs > 2):
+            self.setPulseAmplitudeGreen(amplitude)
+        
     def setPulseAmplitudeRed(self, amplitude):
         self.i2c_set_register(MAX30105_LED1_PULSEAMP, amplitude)
         
