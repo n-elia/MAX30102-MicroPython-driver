@@ -1,6 +1,6 @@
 '''
 This work is a lot based on:
-- https://github.com/sparkfun/SparkFun_MAX3010x_Sensor_Library 
+- https://github.com/sparkfun/SparkFun_MAX3010x_Sensor_Library
   Written by Peter Jansen and Nathan Seidle (SparkFun)
   This is a library written for the Maxim MAX30105 Optical Smoke Detector
   It should also work with the MAX30102. However, the MAX30102 does not have a Green LED.
