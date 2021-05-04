@@ -575,7 +575,10 @@ class MAX30102(object):
             self._acqFrequencyInv = int(ceil(1000/self._acqFrequency))
             logger.info("(%s) Acq. frequency: %f Hz", TAG, self._acqFrequency)
             logger.info("(%s) Acq. period: %f ms", TAG, self._acqFrequencyInv)
-        
+    
+    def getAcquisitionFrequency(self):
+        return self._acqFrequency
+    
     def clearFIFO(self):
         # Resets all points to start in a known state
         # Datasheet page 15 recommends clearing FIFO before beginning a read
