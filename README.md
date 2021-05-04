@@ -36,6 +36,17 @@ However, it *should* work with MAX30105 sensor, too.
 
 ### Usage
 
+#### Including this library into your project
+
+To include the library into a MicroPython project, it's sufficient to copy and include the *MAX30102.py* file. 
+
+Example: create a *lib* directory inside your source code folder, and copy the */src/lib/MAX30102.py* file inside it.
+Then, it will be possible to include the sensor instance constructor by issuing:
+
+```python
+from lib.MAX30102 import MAX30102
+```
+
 #### Setup and configuration
 
 At first, create a sensor instance. If you leave the arguments empty, the library will load the default TinyPico ESP32 board I2C configuration (SDA Pin 21, SCL Pin 22, 400kHz speed).
