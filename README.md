@@ -122,7 +122,7 @@ sensor.setActiveLEDsAmplitude(LED_POWER)
 
 #### Data acquisition
 
-The sensor will store all the readings into a FIFO register (FIFO_DATA). Based on the number of active LEDs and other configuration paramenters, the sensor instance will read data from that register, putting it into the _storage_. The _storage_ is a circular buffer, that can be read using the provided methods.
+The sensor will store all the readings into a FIFO register (FIFO_DATA). Based on the number of active LEDs and other configuration paramenters, the sensor instance will read data from that register, putting it into the_storage_. The_storage_ is a circular buffer, that can be read using the provided methods.
 
 The `check()` method polls the sensor to check if new samples are available in the FIFO queue. If data is available, it will be read and put into the _storage_. We can access those samples using the provided methods such as `popRedFromStorage()`.
 
