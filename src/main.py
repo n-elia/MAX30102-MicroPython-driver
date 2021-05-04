@@ -11,8 +11,8 @@ if __name__ == '__main__':
     # Sensor instance. If left empty, loads default ESP32 I2C configuration
     sensor = MAX30102()
     # Alternatively (for other boards):
-    # sensor = ParticleSensor(i2cHexAddress = 0x57)
-    # sensor = ParticleSensor(i2cHexAddress = 0x57, i2c = i2cInstance)
+    # sensor = MAX30102(i2cHexAddress = 0x57)
+    # sensor = MAX30102(i2cHexAddress = 0x57, i2c = i2cInstance)
     
     # The default sensor configuration is:
     # Led mode: 2 (RED + IR)
