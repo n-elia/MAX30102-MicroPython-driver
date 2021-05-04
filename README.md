@@ -51,11 +51,17 @@ sensor = MAX30102(i2cHexAddress = 0x57, i2c = i2cInstance)
 Then, the sensor has to be setup. The library provides a method to setup the sensor at once. Leaving the arguments empty, makes the library load their default values.
 
 > Default configuration values:
+> 
 > Led mode: 2 (RED + IR)
+> 
 > ADC range: 16384
+> 
 > Sample rate: 400 Hz
+> 
 > Led power: maximum (50.0mA - Presence detection of ~12 inch)
+> 
 > Averaged samples: 8
+> 
 > pulse width: 411
 
 ```python
