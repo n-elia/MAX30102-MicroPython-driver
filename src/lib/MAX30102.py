@@ -21,14 +21,14 @@ This code is being tested on TinyPico Board with Maxim original sensors.
 from ustruct import unpack
 from machine import SoftI2C, Pin
 from utime import sleep_ms, ticks_ms, ticks_diff
-from collections import deque
+from ucollections import deque
 
 import logging
 
 # Setup of logger
 logger = logging.getLogger("MAX30102")
 
-# TODO: parametrize the i2c just to avoid being hardcoded for esp32 only
+# These I2C default settings work for TinyPico (ESP32-based board)
 MAX3010X_I2C_ADDRESS = 0x57
 I2C_SPEED_FAST =   400000  # 400kHz speed
 I2C_SPEED_NORMAL = 100000  # 100kHz speed
@@ -169,15 +169,52 @@ TAG = 'MAX30105'
 # Size of the queued readings
 STORAGE_QUEUE_SIZE = 4
 
+# Very rough implementation of a circular buffer based on deque
+class CircularBuffer(object):
+    def __init__(self, maxSize):
+        self.data = deque((), maxSize, True)
+        self.maxSize = maxSize
+        
+    def __len__(self):
+        return len(self.data)
+    
+    def isEmpty(self):
+        return not bool(self.data)
+    
+    def append(self, item):
+        try:
+            self.data.append(item)
+        except IndexError:
+            # deque full, popping 1st item out
+            self.data.popleft()
+            self.data.append(item)
+        
+    def pop(self):
+        return self.data.popleft()
+
+    def clear(self):
+        self.data = deque((), self.maxSize, True)
+    
+    def popHead(self):
+        bufferSize = len(self.data)
+        temp = deque((), self.maxSize, True)
+        temp = self.data
+        if (bufferSize == 1):
+            pass
+        elif (bufferSize > 1):
+            self.data.clear()
+            for x in range(bufferSize - 1):
+                self.data = temp.popleft()
+        else:
+            return 0
+        return temp.popleft()
+    
 # Data structure to hold the last readings
 class SensorData():
     def __init__(self):
-        self.red = deque(maxsize=STORAGE_QUEUE_SIZE)
-        self.IR  = deque(maxsize=STORAGE_QUEUE_SIZE)
-        self.green = deque(maxsize=STORAGE_QUEUE_SIZE)
-        #FIXME: delete??
-        self.head = 0
-        self.tail = 0
+        self.red = CircularBuffer(STORAGE_QUEUE_SIZE)
+        self.IR  = CircularBuffer(STORAGE_QUEUE_SIZE)
+        self.green = CircularBuffer(STORAGE_QUEUE_SIZE)
 
 # Sensor class
 class MAX30102(object):
@@ -736,7 +773,7 @@ class MAX30102(object):
     def getRed(self):
         # Check the sensor for new data for 250ms
         if (self.safeCheck(250)):
-            return self.sense.red.popleft()
+            return self.sense.red.popHead()
         else:
             # Sensor failed to find new data
             return 0
@@ -745,7 +782,7 @@ class MAX30102(object):
     def getIR(self):
         # Check the sensor for new data for 250ms
         if (self.safeCheck(250)):
-            return self.sense.IR.popleft()
+            return self.sense.IR.popHead()
         else:
             # Sensor failed to find new data
             return 0
@@ -754,7 +791,7 @@ class MAX30102(object):
     def getGreen(self):
         # Check the sensor for new data for 250ms
         if (self.safeCheck(250)):
-            return self.sense.green.popleft()
+            return self.sense.green.popHead()
         else:
             # Sensor failed to find new data
             return 0
@@ -790,68 +827,56 @@ class MAX30102(object):
 
     # Polls the sensor for new data
     def check(self):
+        TAG = "check"
         # I2C buffer length for burst read (32 bytes for ESP32)
         I2C_BUFFER_LENGTH = 32
         
         # Call continuously to poll the sensor for new data.
-        readPointer = self.getReadPointer()
-        writePointer = self.getWritePointer()
+        readPointer = ord(self.getReadPointer())
+        writePointer = ord(self.getWritePointer())
+        # logger.debug("(%s) Pointers: %d %d", TAG, readPointer, writePointer)
         numberOfSamples = 0
         
         # Do we have new data?
         if (readPointer != writePointer):
             # Calculate the number of readings we need to get from sensor
             numberOfSamples = writePointer - readPointer
+            # logger.debug("(%s) Number of samples to read: %d",
+            #              TAG, numberOfSamples)
+            
             # Wrap condition (return to the beginning of 32 samples)
             if (numberOfSamples < 0):
                 numberOfSamples += 32
             
             # Calcunate the number of bytes to read
-            bytesLeftToRead = numberOfSamples * self._activeLEDs * 3
+            bytesToRead = numberOfSamples * (self._activeLEDs * 3)
+                       
+            fifo_bytes = self.i2c_read_register(MAX30105_FIFODATA,
+                                                bytesToRead)
             
-            # Get ready to burst read from FIFO register
-            self._i2c.writeto(self._address, bytearray([MAX30105_FIFODATA]))
+            # TODO: for number of samples, dividi i fifo bytes e leggili
+    
+            # Convert the readings from bytes to integers, depending
+            # on the number of active LEDs
+            if (self._activeLEDs > 0):
+                self.sense.red.append(
+                    self.FIFO_bytes_to_int(fifo_bytes[0:3])
+                )
             
-            # The data to be read can be up to 288 bytes, but we can read it
-            # in chuncks of the I2C buffer size
-            while (bytesLeftToRead > 0):
-                toGet = bytesLeftToRead
-                if (toGet > I2C_BUFFER_LENGTH):
-                    #Trim toGet to be a multiple of the samples we need to read
-                    toGet = I2C_BUFFER_LENGTH - (I2C_BUFFER_LENGTH %
-                                                 (self._activeLEDs * 3))
-                bytesLeftToRead -= toGet
-                
-                while (toGet > 0):
-                    # FIXME: delete??
-                    # Advance the head of the storage queue
-                    # self.sense.head += 1
-                    # Wrap to avoid overflow of queues
-                    # self.sense.head %= STORAGE_QUEUE_SIZE
-                    
-                    # Burst toGet number of bytes from sensor
-                    fifo_bytes = self._i2c.readfrom(self._address, toGet)
+            if (self._activeLEDs > 1):
+                self.sense.IR.append(
+                    self.FIFO_bytes_to_int(fifo_bytes[3:6])
+                )
             
-                    # Convert the readings from bytes to integers, depending
-                    # on the number of active LEDs
-                    if (self._activeLEDs == 1):
-                        self.sense.red.append(
-                            self.FIFO_bytes_to_int(fifo_bytes[0:3])
-                        )
-                    
-                    if (self._activeLEDs == 2):
-                        self.sense.IR.append(
-                            self.FIFO_bytes_to_int(fifo_bytes[3:6])
-                        )
-                    
-                    if (self._activeLEDs == 3):
-                        self.sense.green.append(
-                            self.FIFO_bytes_to_int(fifo_bytes[6:9])
-                        )
-                    
-                    toGet -= self._activeLEDs * 3
+            if (self._activeLEDs > 2):
+                self.sense.green.append(
+                    self.FIFO_bytes_to_int(fifo_bytes[6:9])
+                )
         
-        return numberOfSamples
+            return True
+        
+        else:
+            return False
     
     # Check for new data but give up after a certain amount of time
     def safeCheck(self, maxTimeToCheck):
