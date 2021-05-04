@@ -193,7 +193,7 @@ while(True):
 The example proposed in this repository ([main.py](../src/main.py)) contains a print statement in this form: `print(red_reading, ",", IR_reading)`. If you open the Arduino IDE, and connect your board to it, then you will be able to open the *serial plotter* (Ctrl+Maiusc+L) and see a real-time plot of your readings (need help? take a look [here](https://learn.sparkfun.com/tutorials/max30105-particle-and-pulse-ox-sensor-hookup-guide/all)).
 For instance, this is an example of my heartbeat taken on the index finger:
 
-![Serial Plotter picture](../img/arduino-IDE-serial-plotter-heartbeat.png "Serial Plotter picture")
+![Serial Plotter picture](./img/arduino-IDE-serial-plotter-heartbeat.png "Serial Plotter picture")
 
 ### Tested platforms
 
