@@ -212,7 +212,7 @@ For instance, this is an example of my heartbeat taken on the index finger:
 
 ### Tested platforms
 
-The example works well on TinyPico (ESP32-D4 board) running 'tinypico-20210418-v1.15.bin' MicroPython firmware.
+The example works well on TinyPico (ESP32-D4 board) running 'tinypico-20210418-v1.15.bin' MicroPython firmware, connected to a genuine Maxim 30102 breakout board ([MAXREFDES117#](https://www.maximintegrated.com/en/design/reference-design-center/system-board/6300.html)).
 
 ### Other things that it's worth mentioning
 
