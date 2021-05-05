@@ -203,6 +203,18 @@ while(True):
                 print("Acquisition frequency = ",f_HZ)
 ```
 
+#### Die temperature reading
+
+The `readTemperature()` method allows to read the internal die temperature. An example is proposed below.
+
+```python
+# Read the die temperature in Celsius degree
+temperature_C = sensor.readTemperature()
+print("Die temperature: ", temperature_C, "°C")
+```
+
+Note: as stated in the [datasheet](https://datasheets.maximintegrated.com/en/ds/MAX30102.pdf), the internal die temperature sensor is intended for calibrating the temperature dependence of the SpO2 subsystem. It has an inherent resolution of 0.0625°C, but be aware that the accuracy is ±1°C.
+
 #### Realtime plot over Serial
 
 The example proposed in this repository ([main.py](../src/main.py)) contains a print statement in this form: `print(red_reading, ",", IR_reading)`. If you open the Arduino IDE, and connect your board to it, then you will be able to open the *serial plotter* (Ctrl+Maiusc+L) and see a real-time plot of your readings (need help? take a look [here](https://learn.sparkfun.com/tutorials/max30105-particle-and-pulse-ox-sensor-hookup-guide/all)).
