@@ -1,7 +1,7 @@
 # Maxim MAX30102 MicroPython driver
 
 A port of the SparkFun driver for Maxim MAX30102 sensor to MicroPython.
-It _should_ work for MAX30105, too. Please check this and report in the issues section :)
+It _should_ work for MAX30105, too. Please check this and report in the Discussions section :)
 
 ## Aknowledgements
 
