@@ -227,6 +227,8 @@ For instance, this is an example of my heartbeat taken on the index finger:
 
 The example works well on TinyPico (ESP32-D4 board) running 'tinypico-20210418-v1.15.bin' MicroPython firmware, connected to a genuine Maxim 30102 breakout board ([MAXREFDES117#](https://www.maximintegrated.com/en/design/reference-design-center/system-board/6300.html)).
 
+Tested ( n-elia/MAX30102-MicroPython-driver#4 ) and working on Raspberry Pi Pico + non-Maxim breakout board.
+
 ### Other things that it's worth mentioning
 
 - There is an issue involving chinese clones of the Maxim MAX30102: some of them appear to have the red and IR registers inverted (or maybe the LEDs swapped) (see [here](https://github.com/aromring/MAX30102_by_RF/issues/13)). You can easily check if your sensor is inverted by putting it in LED mode 1: only the red LED should work. If you see the IR LED (use your phone camera to check), then you have to collect IR samples as red ones and viceversa.
