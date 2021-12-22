@@ -14,7 +14,7 @@ This work is a lot based on:
 
 With this driver, I want to give an almost full access to Maxim MAX30102 sensor 
 functionalities.
-This code is being tested on TinyPico Board with Maxim original sensors.
+This code is being tested on TinyPico Board with Maxim genuine sensors.
                                                                          n-elia
 '''
 
