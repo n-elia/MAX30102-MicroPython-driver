@@ -1,7 +1,7 @@
 # Maxim MAX30102 MicroPython driver
 
 A port of the SparkFun driver for Maxim MAX30102 sensor to MicroPython.
-It _should_ work for MAX30105, too. Please check this and report in the Discussions section :)
+It _should_ work for MAX30105, too. Please check if it works for MAX30105 and report in the Discussions section :)
 
 ## Aknowledgements
 
@@ -27,8 +27,8 @@ This work is not intended to be used in professional environments, and there are
 
 ## Repository organisation
 
-Driver: src/lib/MAX30102.py
-Example: src/main.py
+- Driver: `src/lib/MAX30102.py`
+- Example: `src/main.py`
 
 ## Additional information
 
@@ -39,9 +39,9 @@ However, it *should* work with MAX30105 sensor, too.
 
 #### Including this library into your project
 
-To include the library into a MicroPython project, it's sufficient to copy and include the *MAX30102.py* file. 
+To include the library into a MicroPython project, it's sufficient to copy and include the `MAX30102.py` file. 
 
-Example: create a *lib* directory inside your source code folder, and copy the */src/lib/MAX30102.py* file inside it.
+Example: create a *lib* directory inside your source code folder, and copy the `/src/lib/MAX30102.py` file inside it.
 Then, it will be possible to include the sensor instance constructor by issuing:
 
 ```python
@@ -174,8 +174,7 @@ The library computes this value, that can be accessed with:
 acquisition_rate = sensor.getAcquisitionFrequency()
 ```
 
-However, there are some limitations (on sensor side or on micropocessor side) that may affect the acquisition rate. Is is possible to "measure" it as explained in [this](https://github.com/sparkfun/SparkFun_MAX3010x_Sensor_Library/blob/master/examples/Example9_RateTesting/Example9_RateTesting.ino) example sketch by SparkFun.
-Using our library, we can compute the real acquisition rate as follows.
+However, there are some limitations on sensor side and on micropocessor side that may affect the acquisition rate (see issue #6 for more details about it). Is is possible to measure the real throughput as in [this](https://github.com/sparkfun/SparkFun_MAX3010x_Sensor_Library/blob/master/examples/Example9_RateTesting/Example9_RateTesting.ino) example sketch by SparkFun, using the following snippet:
 
 ```python
 # (Assuming that the sensor instance has been already set-up)
