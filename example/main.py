@@ -1,6 +1,6 @@
 # main.py
 
-from lib.MAX30102 import MAX30102
+from max30102 import MAX30102
 from machine import sleep
 from utime import ticks_diff, ticks_ms
 import logging

@@ -9,7 +9,7 @@ This work is a lot based on:
 
 - [SparkFun MAX3010x Sensor Library](https://github.com/sparkfun/SparkFun_MAX3010x_Sensor_Library "GitHub | SparkFun MAX3010x Sensor Library")
 
-  Written by **Peter Jansen and Nathan Seidle** (SparkFun)
+  Written by **Peter Jansen** and **Nathan Seidle** (SparkFun)
   This is a library written for the Maxim MAX30105 Optical Smoke Detector
   It should also work with the MAX30102. However, the MAX30102 does not have a Green LED.
   These sensors use I2C to communicate, as well as a single (optional)
@@ -37,7 +37,14 @@ However, it *should* work with MAX30105 sensor, too.
 
 ### Usage
 
-#### Including this library into your project
+#### Including this library into your project (network-enabled MicroPython ports)
+To include the library into a network-enabled MicroPython project, it's sufficient to include these lines:
+```python
+import upip
+upip.install(micropython-max30102)
+```
+
+#### Including this library into your project (manual way)
 
 To include the library into a MicroPython project, it's sufficient to copy and include the `MAX30102.py` file. 
 
