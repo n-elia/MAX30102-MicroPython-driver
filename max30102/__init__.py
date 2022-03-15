@@ -24,6 +24,9 @@ from ustruct import unpack
 from utime import sleep_ms, ticks_diff, ticks_ms
 
 
+__version__ = '0.3.2'
+
+
 # These I2C default settings work for TinyPico (ESP32-based board)
 MAX3010X_I2C_ADDRESS = 0x57
 I2C_SPEED_FAST =   400000  # 400kHz speed
