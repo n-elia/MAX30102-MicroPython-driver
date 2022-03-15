@@ -1,13 +1,9 @@
 # main.py
-
-from lib.MAX30102 import MAX30102
 from machine import sleep
+from max30102 import MAX30102
 from utime import ticks_diff, ticks_ms
-import logging
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    
     # Sensor instance. If left empty, loads default ESP32 I2C configuration
     sensor = MAX30102()
     # Alternatively (for other boards):

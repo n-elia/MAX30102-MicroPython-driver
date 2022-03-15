@@ -152,3 +152,4 @@ dmypy.json
 micropy.json
 pymakr.conf
 tinypico-20210418-v1.15.bin
+pico-go.json

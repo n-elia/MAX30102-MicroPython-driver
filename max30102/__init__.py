@@ -18,15 +18,11 @@ This code is being tested on TinyPico Board with Maxim genuine sensors.
                                                                          n-elia
 '''
 
-from ustruct import unpack
-from machine import SoftI2C, Pin
-from utime import sleep_ms, ticks_ms, ticks_diff
+from machine import Pin, SoftI2C
 from ucollections import deque
+from ustruct import unpack
+from utime import sleep_ms, ticks_diff, ticks_ms
 
-import logging
-
-# Setup of logger
-logger = logging.getLogger("MAX30102")
 
 # These I2C default settings work for TinyPico (ESP32-based board)
 MAX3010X_I2C_ADDRESS = 0x57
@@ -240,13 +236,9 @@ class MAX30102(object):
         try:
             self._i2c.readfrom(self._address, 1)
         except OSError as error:
-            logger.error("(%s) I2C Error. Unable to find a MAX3010x sensor.", TAG)
             raise SystemExit(error)
-        else:
-            logger.info("(%s) MAX3010x sensor found!", TAG)
-            
+
         if not (self.checkPartID()):
-            logger.error("(%s) Wrong PartID. Unable to find a MAX3010x sensor.", TAG)
             raise SystemExit()
     
     # Sensor setup method
@@ -286,7 +278,6 @@ class MAX30102(object):
      
     def __del__(self):
         self.shutDown()
-        logger.info("(%s) Shutting down the sensor.", TAG)
     
     # Methods to read the two interrupt flags
     def getINT1(self):
@@ -367,7 +358,6 @@ class MAX30102(object):
         # and data registers are reset to their power-on-state through
         # a power-on reset. The RESET bit is cleared automatically back to zero
         # after the reset sequence is completed. (datasheet pag. 19)
-        logger.debug("(%s) Resetting the sensor.", TAG)
         self.set_bitMask(MAX30105_MODECONFIG,
                          MAX30105_RESET_MASK,
                          MAX30105_RESET)
@@ -475,8 +465,6 @@ class MAX30102(object):
                          MAX30105_SAMPLERATE_MASK,
                          sr)
         
-        logger.debug("(%s) Setting sample rate to %d.", TAG, sample_rate)
-        
         # Store the sample rate and recompute the acq. freq.
         self._sampleRate = sample_rate
         self.updateAcquisitionFrequency()
@@ -500,8 +488,6 @@ class MAX30102(object):
         self.set_bitMask(MAX30105_PARTICLECONFIG,
                          MAX30105_PULSEWIDTH_MASK,
                          pw)
-        
-        logger.debug("(%s) Setting pulse width to %d.", TAG, pulse_width)
         
         # Store the pulse width
         self._pulseWidth = pw
@@ -555,9 +541,6 @@ class MAX30102(object):
                 'Wrong number of samples:{0}!'.format(number_of_samples))
         self.set_bitMask(MAX30105_FIFOCONFIG, MAX30105_SAMPLEAVG_MASK, ns)
         
-        logger.debug("(%s) Setting FIFO avg samples to %d.", TAG,
-                     number_of_samples)
-        
         # Store the number of averaged samples and recompute the acq. freq.
         self._sampleAvg = number_of_samples
         self.updateAcquisitionFrequency()
@@ -565,16 +548,14 @@ class MAX30102(object):
     def updateAcquisitionFrequency(self):
         TAG = 'updateAcquisitionFrequency'
         if (None in [self._sampleRate, self._sampleAvg]):
-            logger.debug("(%s) Unable to compute acq freq..", TAG)
             return
         else:
             self._acqFrequency = self._sampleRate / self._sampleAvg
             from math import ceil
+
             # Compute the time interval to wait before taking a good measure
             # (see note in setSampleRate() method)
             self._acqFrequencyInv = int(ceil(1000/self._acqFrequency))
-            logger.info("(%s) Acq. frequency: %f Hz", TAG, self._acqFrequency)
-            logger.info("(%s) Acq. period: %f ms", TAG, self._acqFrequencyInv)
     
     def getAcquisitionFrequency(self):
         return self._acqFrequency
