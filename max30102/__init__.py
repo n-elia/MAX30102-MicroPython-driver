@@ -23,8 +23,6 @@ from ucollections import deque
 from ustruct import unpack
 from utime import sleep_ms, ticks_diff, ticks_ms
 
-__version__ = "v0.3"
-
 
 # These I2C default settings work for TinyPico (ESP32-based board)
 MAX3010X_I2C_ADDRESS = 0x57

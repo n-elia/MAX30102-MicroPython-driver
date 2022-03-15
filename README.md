@@ -27,33 +27,37 @@ This work is not intended to be used in professional environments, and there are
 
 ## Repository organisation
 
-- Driver: `src/lib/MAX30102.py`
-- Example: `src/main.py`
+- Driver: `./max30102`
+- Example: `./example`
 
 ## Additional information
 
-This driver works for sure with Maxim Integrated MAX30102 sensor.
+This driver has been tested with Maxim Integrated MAX30102 sensor.
 However, it *should* work with MAX30105 sensor, too.
 
-### Usage
+### How to import the library and run the example
 
 #### Including this library into your project (network-enabled MicroPython ports)
-To include the library into a network-enabled MicroPython project, it's sufficient to include these lines:
+To include the library into a network-enabled MicroPython project, it's sufficient to install the package:
+
 ```python
 import upip
 upip.install(micropython-max30102)
 ```
 
+Make sure that your firmware runs these lines **after** an Internet connection has been established.
+
+To run the example in `./example` folder, upload `./example` content into your microcontroller, and run it.
+
 #### Including this library into your project (manual way)
 
-To include the library into a MicroPython project, it's sufficient to copy and include the `MAX30102.py` file. 
-
-Example: create a *lib* directory inside your source code folder, and copy the `/src/lib/MAX30102.py` file inside it.
-Then, it will be possible to include the sensor instance constructor by issuing:
+To directly include the library into a MicroPython project, it's sufficient to copy the `max30102` module next to your `main.py`, and then import it as follows:
 
 ```python
-from lib.MAX30102 import MAX30102
+from max30102 import MAX30102
 ```
+
+For instance, to run the example in `./example` folder, copy the `./max30102` directory and paste it in the `./example` folder. Then, upload `./example` content into your microcontroller and run it.
 
 #### Setup and configuration
 
