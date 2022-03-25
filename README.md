@@ -58,13 +58,13 @@ To run the example in `./example` folder, please set your WiFi credentials in `b
 
 ### Including this library into your project (**manual way**)
 
-To directly include the library into a MicroPython project, it's sufficient to copy `max30102/circular_buffer.py` and `max30102/max30102.py` next to your `main.py` file. Then, import the constructor as follows:
+To directly include the library into a MicroPython project, it's sufficient to copy `max30102/circular_buffer.py` and `max30102/max30102.py` next to your `main.py` file, into a `lib` directory. Then, import the constructor as follows:
 
 ```python
 from max30102 import MAX30102
 ```
 
-To run the example in `./example` folder, copy `max30102/circular_buffer.py` and `max30102/max30102.py` into the `./example` directory. Then, upload the `./example` directory content into your microcontroller.
+To run the example in `./example` folder, copy `max30102/circular_buffer.py` and `max30102/max30102.py` into the `./example/lib` directory. Then, upload the `./example` directory content into your microcontroller. After the upload, press the reset button of your board are you're good to go.
 
 
 ### Setup and configuration
