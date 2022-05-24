@@ -11,23 +11,18 @@
 # - https://github.com/kandizzy/esp32-micropython/blob/master/PPG/ppg/MAX30105.py
 #   A port of the library to MicroPython by kandizzy
 #
-# With this driver, I want to give almost full access to Maxim MAX30102 sensor
-# functionalities.
-# This code is being tested on TinyPico Board with Maxim genuine sensors.
+# This driver aims at giving almost full access to Maxim MAX30102 functionalities.
 #                                                                          n-elia
 
-from machine import Pin, SoftI2C
+import uerrno
+from machine import SoftI2C
 from ustruct import unpack
 from utime import sleep_ms, ticks_diff, ticks_ms
 
 from circular_buffer import CircularBuffer
 
-# These I2C default settings work for TinyPico (ESP32-based board)
-MAX3010X_I2C_ADDRESS = 0x57
-I2C_SPEED_FAST = 400000  # 400kHz speed
-I2C_SPEED_NORMAL = 100000  # 100kHz speed
-I2C_DEF_SDA_PIN = 21
-I2C_DEF_SCL_PIN = 22
+# I2C address (7-bit address)
+MAX3010X_I2C_ADDRESS = 0x57  # Right-shift of 0xAE, 0xAF
 
 # Status Registers
 MAX30105_INT_STAT_1 = 0x00
@@ -175,12 +170,10 @@ class SensorData:
 # Sensor class
 class MAX30102(object):
     def __init__(self,
-                 i2cHexAddress=MAX3010X_I2C_ADDRESS,
-                 i2c=SoftI2C(sda=Pin(I2C_DEF_SDA_PIN),
-                             scl=Pin(I2C_DEF_SCL_PIN),
-                             freq=I2C_SPEED_FAST)
+                 i2c: SoftI2C,
+                 i2c_hex_address=MAX3010X_I2C_ADDRESS,
                  ):
-        self._address = i2cHexAddress
+        self._address = i2c_hex_address
         self._i2c = i2c
         self._active_leds = None
         self._pulse_width = None
@@ -196,42 +189,45 @@ class MAX30102(object):
         try:
             self._i2c.readfrom(self._address, 1)
         except OSError as error:
-            raise SystemExit(error)
+            if error.errno == uerrno.ENODEV:
+                raise RuntimeError("Sensor not found on I2C bus.")
+            else:
+                raise RuntimeError(f"Error while reading from I2C bus: OSError code {error.errno}")
 
         if not (self.check_part_id()):
-            raise SystemExit()
+            raise RuntimeError("I2C device ID not corresponding to MAX30102 or MAX30105")
 
     # Sensor setup method
-    def setup_sensor(self, LED_MODE=2, ADC_RANGE=16384, SAMPLE_RATE=400,
-                     LED_POWER=MAX30105_PULSE_AMP_HIGH, SAMPLE_AVG=8,
-                     PULSE_WIDTH=411):
+    def setup_sensor(self, led_mode=2, adc_range=16384, sample_rate=400,
+                     led_power=MAX30105_PULSE_AMP_HIGH, sample_avg=8,
+                     pulse_width=411):
         # Reset the sensor's registers from previous configurations
         self.soft_reset()
 
         # Set the number of samples to be averaged by the chip to 8
-        self.set_fifo_average(SAMPLE_AVG)
+        self.set_fifo_average(sample_avg)
 
         # Allow FIFO queues to wrap/roll over
         self.enable_fifo_rollover()
 
         # Set the LED mode to the default value of 2 (RED + IR)
         # Note: the 3rd mode is available only with MAX30105
-        self.set_led_mode(LED_MODE)
+        self.set_led_mode(led_mode)
 
         # Set the ADC range to default value of 16384
-        self.set_adc_range(ADC_RANGE)
+        self.set_adc_range(adc_range)
 
         # Set the sample rate to the default value of 400
-        self.set_sample_rate(SAMPLE_RATE)
+        self.set_sample_rate(sample_rate)
 
         # Set the Pulse Width to the default value of 411
-        self.set_pulse_width(PULSE_WIDTH)
+        self.set_pulse_width(pulse_width)
 
         # Set the LED brightness to the default value of 'low'
-        self.set_pulse_amplitude_red(LED_POWER)
-        self.set_pulse_amplitude_it(LED_POWER)
-        self.set_pulse_amplitude_green(LED_POWER)
-        self.set_pulse_amplitude_proximity(LED_POWER)
+        self.set_pulse_amplitude_red(led_power)
+        self.set_pulse_amplitude_it(led_power)
+        self.set_pulse_amplitude_green(led_power)
+        self.set_pulse_amplitude_proximity(led_power)
 
         # Clears the FIFO
         self.clear_fifo()
