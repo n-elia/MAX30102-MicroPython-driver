@@ -6,6 +6,29 @@ A port of the SparkFun driver for Maxim MAX30102 sensor to MicroPython.
 It _should_ work for MAX30105, too. If you have the chance to test this library with a MAX30105, please leave your feedback in the Discussions section.
 
 
+## Table of contents
+
+  * [Disclaimer](#disclaimer)
+  * [Usage](#usage)
+    + [1 - Including this library into your project](#1---including-this-library-into-your-project)
+      - [1a - network-enabled MicroPython ports](#1a---network-enabled-micropython-ports)
+      - [1b - manual way (no Internet access required)](#1b---manual-way-no-internet-access-required)
+    + [2 - I2C setup and sensor configuration](#2---i2c-setup-and-sensor-configuration)
+      - [I2C connection](#i2c-connection)
+      - [Sensor setup](#sensor-setup)
+    + [3 - Data acquisition](#3---data-acquisition)
+      - [Read data from sensor](#read-data-from-sensor)
+      - [Notes on data acquisition rate](#notes-on-data-acquisition-rate)
+      - [Die temperature reading](#die-temperature-reading)
+  * [Changelog](#changelog)
+  * [Aknowledgements](#aknowledgements)
+  * [Other useful things](#other-useful-things)
+    + [Realtime plot over Serial](#realtime-plot-over-serial)
+    + [Tested platforms](#tested-platforms)
+    + [Sensor clones](#sensor-clones)
+    + [Heartrate and SPO2 estimation](#heartrate-and-spo2-estimation)
+
+
 ## Disclaimer
 
 This work is not intended to be used in professional environments, and there are no guarantees on its functionalities. Please do not rely on it for medical purposes or professional usage.
