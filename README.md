@@ -217,6 +217,8 @@ Note: as stated in the [datasheet](https://datasheets.maximintegrated.com/en/ds/
 
 ## Changelog
 
+- v0.3.6
+  - The library now performs a I2C scan to check if the sensor is connected. This prevents unexpected I2C errors with some boards (such as Raspberry Pi Pico).
 - v0.3.5
   - A `SoftI2C` instance is now required by the constructor.
   - The constructor now raises `RuntimeError` when the sensor is not found on I2C bus.

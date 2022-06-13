@@ -3,7 +3,7 @@ import sdist_upip
 
 setup(
     name="micropython-max30102",
-    version="0.3.5",
+    version="0.3.6",
     description="MAX30102 driver for micropython.",
     long_description=open("README.md").read(),
     long_description_content_type='text/markdown',
