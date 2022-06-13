@@ -187,7 +187,10 @@ class MAX30102(object):
         self.sense = SensorData()
 
         try:
-            self._i2c.readfrom(self._address, 1)
+            # self._i2c.readfrom(self._address, 1) # Some boards won't work if scan() is never called
+            dev_list = self._i2c.scan()
+            if not self._address in dev_list:
+                raise OSError(uerrno.ENODEV)
         except OSError as error:
             if error.errno == uerrno.ENODEV:
                 raise RuntimeError("Sensor not found on I2C bus.")
