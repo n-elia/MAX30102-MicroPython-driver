@@ -18,11 +18,7 @@ if __name__ == '__main__':
     # Raspberry Pi Pico |   16       |   17
 
     # Sensor instance
-    try:
-        sensor = MAX30102(i2c=i2c)  # An I2C instance is required
-    except RuntimeError as err:
-        print("Error occurred while sensor initialization:", err)
-        raise SystemExit(err)
+    sensor = MAX30102(i2c=i2c)  # An I2C instance is required
 
     # The default sensor configuration is:
     # Led mode: 2 (RED + IR)
