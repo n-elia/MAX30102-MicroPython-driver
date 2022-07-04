@@ -153,8 +153,6 @@ SLOT_GREEN_PILOT = 0x07
 
 MAX_30105_EXPECTED_PART_ID = 0x15
 
-TAG = 'MAX30105'
-
 # Size of the queued readings
 STORAGE_QUEUE_SIZE = 4
 
@@ -173,7 +171,7 @@ class MAX30102(object):
                  i2c: SoftI2C,
                  i2c_hex_address=MAX3010X_I2C_ADDRESS,
                  ):
-        self._address = i2c_hex_address
+        self.i2c_address = i2c_hex_address
         self._i2c = i2c
         self._active_leds = None
         self._pulse_width = None
@@ -186,23 +184,9 @@ class MAX30102(object):
         # Circular buffer of readings from the sensor
         self.sense = SensorData()
 
-        try:
-            # self._i2c.readfrom(self._address, 1) # Some boards won't work if scan() is never called
-            dev_list = self._i2c.scan()
-            if not self._address in dev_list:
-                raise OSError(uerrno.ENODEV)
-        except OSError as error:
-            if error.errno == uerrno.ENODEV:
-                raise RuntimeError("Sensor not found on I2C bus.")
-            else:
-                raise RuntimeError(f"Error while reading from I2C bus: OSError code {error.errno}")
-
-        if not (self.check_part_id()):
-            raise RuntimeError("I2C device ID not corresponding to MAX30102 or MAX30105")
-
     # Sensor setup method
     def setup_sensor(self, led_mode=2, adc_range=16384, sample_rate=400,
-                     led_power=MAX30105_PULSE_AMP_HIGH, sample_avg=8,
+                     led_power=MAX30105_PULSE_AMP_MEDIUM, sample_avg=8,
                      pulse_width=411):
         # Reset the sensor's registers from previous configurations
         self.soft_reset()
@@ -576,11 +560,11 @@ class MAX30102(object):
 
     # Low-level I2C Communication
     def i2c_read_register(self, REGISTER, n_bytes=1):
-        self._i2c.writeto(self._address, bytearray([REGISTER]))
-        return self._i2c.readfrom(self._address, n_bytes)
+        self._i2c.writeto(self.i2c_address, bytearray([REGISTER]))
+        return self._i2c.readfrom(self.i2c_address, n_bytes)
 
     def i2c_set_register(self, REGISTER, VALUE):
-        self._i2c.writeto(self._address, bytearray([REGISTER, VALUE]))
+        self._i2c.writeto(self.i2c_address, bytearray([REGISTER, VALUE]))
         return
 
     # Given a register, read it, mask it, and then set the thing
