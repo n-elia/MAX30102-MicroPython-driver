@@ -4,7 +4,8 @@ from utime import ticks_diff, ticks_us
 
 from max30102 import MAX30102
 
-if __name__ == '__main__':
+
+def main():
     # I2C software instance
     i2c = SoftI2C(sda=Pin(22),  # Here, use your I2C SDA pin
                   scl=Pin(21),  # Here, use your I2C SCL pin
@@ -16,20 +17,30 @@ if __name__ == '__main__':
     # ESP32 D1 Mini     |   22       |   21
     # TinyPico ESP32    |   21       |   22
     # Raspberry Pi Pico |   16       |   17
+    # TinyS3			|	 8		 |    9
 
     # Sensor instance
     sensor = MAX30102(i2c=i2c)  # An I2C instance is required
 
-    # The default sensor configuration is:
+    # Scan I2C bus to ensure that the sensor is connected
+    if sensor.i2c_address not in i2c.scan():
+        print("Sensor not found.")
+        return
+    elif not (sensor.check_part_id()):
+        # Check that the targeted sensor is compatible
+        print("I2C device ID not corresponding to MAX30102 or MAX30105.")
+        return
+    else:
+        print("Sensor connected and recognized.")
+
+    # It's possible to set up the sensor at once with the setup_sensor() method.
+    # If no parameters are supplied, the default config is loaded:
     # Led mode: 2 (RED + IR)
     # ADC range: 16384
     # Sample rate: 400 Hz
     # Led power: maximum (50.0mA - Presence detection of ~12 inch)
     # Averaged samples: 8
     # pulse width: 411
-
-    # It's possible to set up the sensor at once with the setup_sensor() method.
-    # If no parameters are supplied, the default config is loaded.
     print("Setting up sensor with default configuration.", '\n')
     sensor.setup_sensor()
 
@@ -78,3 +89,7 @@ if __name__ == '__main__':
                     t_start = ticks_us()
                 else:
                     samples_n = samples_n + 1
+
+
+if __name__ == '__main__':
+    main()
