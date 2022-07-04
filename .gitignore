@@ -11,6 +11,5 @@ pico-go.json
 example/lib/circular_buffer.py
 example/lib/max30102.py
 
-# Interpeter and stubs
-.mp
-/stubs
+# Python dev
+/venv
