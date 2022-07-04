@@ -2,7 +2,7 @@
 from machine import sleep, SoftI2C, Pin
 from utime import ticks_diff, ticks_us
 
-from max30102 import MAX30102
+from max30102 import MAX30102, MAX30105_PULSE_AMP_MEDIUM
 
 
 def main():
@@ -45,10 +45,12 @@ def main():
     sensor.setup_sensor()
 
     # It is also possible to tune the configuration parameters one by one.
-    # Set the sample rate to 800: 800 samples/s are collected by the sensor
-    sensor.set_sample_rate(800)
+    # Set the sample rate to 400: 400 samples/s are collected by the sensor
+    sensor.set_sample_rate(400)
     # Set the number of samples to be averaged per each reading
     sensor.set_fifo_average(8)
+    # Set LED brightness to a medium value
+    sensor.set_active_leds_amplitude(MAX30105_PULSE_AMP_MEDIUM)
 
     sleep(1)
 
