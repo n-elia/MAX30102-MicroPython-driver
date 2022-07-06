@@ -14,7 +14,6 @@
 # This driver aims at giving almost full access to Maxim MAX30102 functionalities.
 #                                                                          n-elia
 
-import uerrno
 from machine import SoftI2C
 from ustruct import unpack
 from utime import sleep_ms, ticks_diff, ticks_ms
