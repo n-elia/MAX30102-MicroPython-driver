@@ -279,6 +279,9 @@ resolution of 0.0625°C, but be aware that the accuracy is ±1°C.
 
 ## Changelog
 
+- v0.4.1
+  - Changed the module files organization.
+  - Added support to `mip` package manager.
 - v0.4.0
     - According to some best practices discussed [here](https://forum.micropython.org/viewtopic.php?f=2&t=12508), some
       changes have been made.
