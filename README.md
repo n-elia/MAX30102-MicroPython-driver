@@ -46,9 +46,17 @@ A full example is provided in `/example` directory.
 
 #### 1a - **network-enabled MicroPython ports**
 
-> Warning: in latest MicroPython releases `upip` has been deprecated in favor of [`mip`](https://docs.micropython.org/en/latest/reference/packages.html#package-management). Please use the manual installation until I set up the driver to work with `mip`.
+> Warning: in latest MicroPython releases `upip` has been deprecated in favor of [`mip`](https://docs.micropython.org/en/latest/reference/packages.html#package-management). This module is compatible with both of them. Please use the package manager included into your MicroPython version.
 
-To include the library into a network-enabled MicroPython project, it's sufficient to install the package using `upip`:
+If your MicroPython version supports `mip` package manager, put these lines **after** the setup of an Internet connection:
+
+```python
+import mip
+
+mip.install("github:n-elia/MAX30102-MicroPython-driver")
+```
+
+If your MicroPython version supports `upip` package manager, put these lines **after** the setup of an Internet connection:
 
 ```python
 import upip
@@ -56,15 +64,13 @@ import upip
 upip.install("micropython-max30102")
 ```
 
-Make sure that your firmware runs these lines **after** an Internet connection has been established.
-
 To run the example in `./example` folder, please set your WiFi credentials in `boot.py` and then upload `./example`
 content into your microcontroller. If you prefer, you can perform a manual install as explained below.
 
 #### 1b - **manual way** (no Internet access required)
 
 To directly include the library into a MicroPython project, it's sufficient to copy `max30102/circular_buffer.py`
-and `max30102/max30102.py` next to your `main.py` file, into a `lib` directory.
+and `max30102/__init__.py` next to your `main.py` file, into a `lib` directory.
 
 The folder tree should look as follows:
 
@@ -73,7 +79,7 @@ The folder tree should look as follows:
 ┣ 📜 boot.py
 ┣ 📜 main.py
 ┗ 📂 lib
-  ┣ 📜 max30102.py
+  ┣ 📜 __init__.py
   ┗ 📜 circular_buffer.py
 ```
 
@@ -83,7 +89,7 @@ Then, import the constructor as follows:
 from max30102 import MAX30102
 ```
 
-To run the example in `./example` folder, copy `max30102/circular_buffer.py` and `max30102/max30102.py` into
+To run the example in `./example` folder, copy `max30102/circular_buffer.py` and `max30102/__init__.py` into
 the `./example/lib` directory. Then, upload the `./example` directory content into your microcontroller. After the
 upload, press the reset button of your board are you're good to go.
 
@@ -273,6 +279,9 @@ resolution of 0.0625°C, but be aware that the accuracy is ±1°C.
 
 ## Changelog
 
+- v0.4.1
+  - Changed the module files organization.
+  - Added support to `mip` package manager.
 - v0.4.0
     - According to some best practices discussed [here](https://forum.micropython.org/viewtopic.php?f=2&t=12508), some
       changes have been made.
