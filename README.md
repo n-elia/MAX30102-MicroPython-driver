@@ -46,12 +46,14 @@ A full example is provided in `/example` directory.
 
 #### 1a - **network-enabled MicroPython ports**
 
+> Warning: in latest MicroPython releases `upip` has been deprecated in favor of [`mip`](https://docs.micropython.org/en/latest/reference/packages.html#package-management). Please use the manual installation until I set up the driver to work with `mip`.
+
 To include the library into a network-enabled MicroPython project, it's sufficient to install the package using `upip`:
 
 ```python
 import upip
 
-upip.install(micropython - max30102)
+upip.install("micropython-max30102")
 ```
 
 Make sure that your firmware runs these lines **after** an Internet connection has been established.
@@ -62,7 +64,20 @@ content into your microcontroller. If you prefer, you can perform a manual insta
 #### 1b - **manual way** (no Internet access required)
 
 To directly include the library into a MicroPython project, it's sufficient to copy `max30102/circular_buffer.py`
-and `max30102/max30102.py` next to your `main.py` file, into a `lib` directory. Then, import the constructor as follows:
+and `max30102/max30102.py` next to your `main.py` file, into a `lib` directory.
+
+The folder tree should look as follows:
+
+```text
+.
+┣ 📜 boot.py
+┣ 📜 main.py
+┗ 📂 lib
+  ┣ 📜 max30102.py
+  ┗ 📜 circular_buffer.py
+```
+
+Then, import the constructor as follows:
 
 ```python
 from max30102 import MAX30102
