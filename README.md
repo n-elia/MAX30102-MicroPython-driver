@@ -64,7 +64,7 @@ content into your microcontroller. If you prefer, you can perform a manual insta
 #### 1b - **manual way** (no Internet access required)
 
 To directly include the library into a MicroPython project, it's sufficient to copy `max30102/circular_buffer.py`
-and `max30102/max30102.py` next to your `main.py` file, into a `lib` directory.
+and `max30102/__init__.py` next to your `main.py` file, into a `lib` directory.
 
 The folder tree should look as follows:
 
@@ -73,7 +73,7 @@ The folder tree should look as follows:
 ┣ 📜 boot.py
 ┣ 📜 main.py
 ┗ 📂 lib
-  ┣ 📜 max30102.py
+  ┣ 📜 __init__.py
   ┗ 📜 circular_buffer.py
 ```
 
@@ -83,7 +83,7 @@ Then, import the constructor as follows:
 from max30102 import MAX30102
 ```
 
-To run the example in `./example` folder, copy `max30102/circular_buffer.py` and `max30102/max30102.py` into
+To run the example in `./example` folder, copy `max30102/circular_buffer.py` and `max30102/__init__.py` into
 the `./example/lib` directory. Then, upload the `./example` directory content into your microcontroller. After the
 upload, press the reset button of your board are you're good to go.
 
