@@ -1,4 +1,5 @@
 # main.py
+# Some ports need to import 'sleep' from 'time' module
 from machine import sleep, SoftI2C, Pin
 from utime import ticks_diff, ticks_us
 
