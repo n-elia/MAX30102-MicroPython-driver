@@ -1,5 +1,9 @@
 # This workflow will pre-compile the module using mpy-cross
 
+# To test with act:
+# act -j precompile-v5 -s GITHUB_TOKEN=GH_token --artifact-server-path artifacts_v5
+# act -j precompile-v6 -s GITHUB_TOKEN=GH_token --artifact-server-path artifacts_v6
+
 name: Pre-compile modules
 
 on:

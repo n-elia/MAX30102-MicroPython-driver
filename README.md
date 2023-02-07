@@ -11,25 +11,30 @@ feedback in the Discussions section.
 
 ## Table of contents
 
-* [Disclaimer](#disclaimer)
-* [Usage](#usage)
-    + [1 - Including this library into your project](#1---including-this-library-into-your-project)
-        - [1a - **network-enabled MicroPython ports**](#1a---network-enabled-micropython-ports)
-        - [1b - **manual way** (no Internet access required)](#1b---manual-way-no-internet-access-required)
-    + [2 - I2C setup and sensor configuration](#2---i2c-setup-and-sensor-configuration)
-        - [I2C connection](#i2c-connection)
-        - [Sensor setup](#sensor-setup)
-    + [3 - Data acquisition](#3---data-acquisition)
-        - [Read data from sensor](#read-data-from-sensor)
-        - [Notes on data acquisition rate](#notes-on-data-acquisition-rate)
-        - [Die temperature reading](#die-temperature-reading)
-* [Changelog](#changelog)
-* [Acknowledgements](#acknowledgements)
-* [Tested platforms and known issues](#tested-platforms-and-known-issues)
-* [Other useful things](#other-useful-things)
-    + [Realtime plot over Serial](#realtime-plot-over-serial)
-    + [Sensor clones](#sensor-clones)
-    + [Heartrate and SPO2 estimation](#heartrate-and-spo2-estimation)
+# Table of contents
+
+- [Maxim MAX30102 MicroPython driver](#maxim-max30102-micropython-driver)
+  - [Table of contents](#table-of-contents)
+  - [Disclaimer](#disclaimer)
+  - [Usage](#usage)
+    - [1 - Including this library into your project](#1---including-this-library-into-your-project)
+      - [1a - **network-enabled MicroPython ports**](#1a---network-enabled-micropython-ports)
+      - [1b - **manual way** (no Internet access required)](#1b---manual-way-no-internet-access-required)
+    - [2 - I2C setup and sensor configuration](#2---i2c-setup-and-sensor-configuration)
+      - [I2C connection](#i2c-connection)
+      - [Sensor setup](#sensor-setup)
+    - [3 - Data acquisition](#3---data-acquisition)
+      - [Read data from sensor](#read-data-from-sensor)
+      - [Notes on data acquisition rate](#notes-on-data-acquisition-rate)
+      - [Die temperature reading](#die-temperature-reading)
+  - [Changelog](#changelog)
+  - [Acknowledgements](#acknowledgements)
+  - [Tested platforms](#tested-platforms)
+  - [Other useful things and troubleshooting](#other-useful-things-and-troubleshooting)
+    - [Realtime plot over Serial](#realtime-plot-over-serial)
+    - [Sensor clones](#sensor-clones)
+    - [Heartrate and SPO2 estimation](#heartrate-and-spo2-estimation)
+    - [ESP8266 module import error](#esp8266-module-import-error)
 
 ## Disclaimer
 
@@ -46,9 +51,13 @@ A full example is provided in `/example` directory.
 
 #### 1a - **network-enabled MicroPython ports**
 
-> Warning: in latest MicroPython releases `upip` has been deprecated in favor of [`mip`](https://docs.micropython.org/en/latest/reference/packages.html#package-management). This module is compatible with both of them. Please use the package manager included into your MicroPython version.
+> Warning: in latest MicroPython releases `upip` has been deprecated in favor
+> of [`mip`](https://docs.micropython.org/en/latest/reference/packages.html#package-management). This module is
+> compatible
+> with both of them. Please use the package manager included into your MicroPython version.
 
-If your MicroPython version supports `mip` package manager, put these lines **after** the setup of an Internet connection:
+If your MicroPython version supports `mip` package manager, put these lines **after** the setup of an Internet
+connection:
 
 ```python
 import mip
@@ -56,7 +65,8 @@ import mip
 mip.install("github:n-elia/MAX30102-MicroPython-driver")
 ```
 
-If your MicroPython version supports `upip` package manager, put these lines **after** the setup of an Internet connection:
+If your MicroPython version supports `upip` package manager, put these lines **after** the setup of an Internet
+connection:
 
 ```python
 import upip
@@ -280,8 +290,8 @@ resolution of 0.0625°C, but be aware that the accuracy is ±1°C.
 ## Changelog
 
 - v0.4.1
-  - Changed the module files organization.
-  - Added support to `mip` package manager.
+    - Changed the module files organization.
+    - Added support to `mip` package manager.
 - v0.4.0
     - According to some best practices discussed [here](https://forum.micropython.org/viewtopic.php?f=2&t=12508), some
       changes have been made.
@@ -324,24 +334,26 @@ This work is a lot based on:
 
   A port of the library to MicroPython by **kandizzy**
 
-## Tested platforms and known issues
+## Tested platforms
 
-The library has been tested on _TinyPico_ (board based on _ESP32-D4_) running 'tinypico-20210418-v1.15.bin' MicroPython
-firmware, connected to a genuine Maxim 30102 breakout
-board ([MAXREFDES117#](https://www.maximintegrated.com/en/design/reference-design-center/system-board/6300.html)).
+- _TinyPico_ (board based on _ESP32-D4_) running 'tinypico-20210418-v1.15.bin' MicroPython firmware, connected to a
+  genuine Maxim 30102 breakout
+  board ([MAXREFDES117#](https://www.maximintegrated.com/en/design/reference-design-center/system-board/6300.html)).
 
-Tested ([thanks to ebolisa](https://github.com/n-elia/MAX30102-MicroPython-driver/issues/4)) and working on _Raspberry Pi
-Pico_ + non-Maxim breakout board.
+- _Raspberry Pi
+  Pico_ + non-Maxim breakout board ([thanks to ebolisa](https://github.com/n-elia/MAX30102-MicroPython-driver/issues/4))
 
-Tested and working on _ESP32-S3_ (_Unexpected Maker TinyS3_) + non-Maxim breakout board.
+- _ESP32-S3_ (_Unexpected Maker TinyS3_) running MicroPython v1.18 stable and MicroPython v1.19 stable + non-Maxim
+  breakout board.
 
 **I2C read issue**: as discussed in the [MicroPython forum](https://forum.micropython.org/viewtopic.php?f=2&t=12508) and
 in the
-[GitHub Discussions section](https://github.com/n-elia/MAX30102-MicroPython-driver/discussions/5#discussioncomment-2899588),
+[GitHub Discussions section](https://github.com/n-elia/MAX30102-MicroPython-driver/discussions/5#discussioncomment-2899588)
+,
 some board/sensor combinations lead to an issue that makes the first I2C read fail. This issue can be mitigated by
 running an I2C scan before actually using the sensor, as shown in the provided example.
 
-## Other useful things
+## Other useful things and troubleshooting
 
 ### Realtime plot over Serial
 
@@ -366,3 +378,24 @@ your phone camera to check), then you have to collect IR samples as red ones and
 If you're looking for algorithms for extracting heartrate and SPO2 from your RAW data, take a
 look [here](https://github.com/aromring/MAX30102_by_RF)
 and [here](https://github.com/kandizzy/esp32-micropython/tree/master/PPG)
+
+
+### ESP8266 module import error
+
+If you get an error like this:
+
+```
+MemoryError: memory allocation failed,allocating 416 bytes
+```
+
+then your heap is too small to allocate the module. You can try to pre-compile the module using `mpy-cross` and then
+import it as usual. You can either use the precompiled module provided in
+the [GitHub Action artifacts](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/pre-compile.yml)
+or compile it
+yourself.
+
+In the first case, you just have to replace the `max30102` folder of the module with the one provided in the artifact
+archive.
+
+In either case, you have to choose the proper version of `mpy-cross` according to your Micropython version: for
+MicroPython v.1.18 and below, you can use `mpy-cross-v5`, while for MicroPython v1.19 you have to use `mpy-cross-v6`.
