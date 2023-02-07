@@ -1,0 +1,42 @@
+# This workflow will pre-compile the module using mpy-cross
+
+name: Pre-compile modules
+
+on:
+  push:
+
+jobs:
+  precompile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: max30102
+
+      - uses: actions/checkout@v3
+        with:
+          repository: 'micropython/micropython'
+          path: micropython
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.8'
+
+      # For MicroPython version <1.19, install mpy-cross-v5
+      - name: Install mpy-cross
+        run: |
+          pip install mpy-cross-v6
+
+      - name: Pre-compile module
+        run: |
+          mkdir precompiled
+          python -m mpy_cross_v6 max30102/max30102/__init__.py -o precompiled/v6/max30102/__init__.mpy
+          python -m mpy_cross_v6 max30102/max30102/circular_buffer.py -o precompiled/v6/max30102/circular_buffer.mpy
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: precompiled module
+          path: precompiled/*
