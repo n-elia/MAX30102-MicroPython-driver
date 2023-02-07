@@ -1,4 +1,5 @@
 [![Upload Python Package](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/python-publish.yml/badge.svg)](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/python-publish.yml)
+[![Pre-compile modules](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/pre-compile.yml/badge.svg)](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/pre-compile.yml)
 [![PyPI version](https://badge.fury.io/py/micropython-max30102.svg)](https://badge.fury.io/py/micropython-max30102)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/micropython-max30102?color=blue&label=upip%20installations)
 
@@ -391,11 +392,12 @@ MemoryError: memory allocation failed,allocating 416 bytes
 then your heap is too small to allocate the module. You can try to pre-compile the module using `mpy-cross` and then
 import it as usual. You can either use the precompiled module provided in
 the [GitHub Action artifacts](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/pre-compile.yml)
-or compile it
-yourself.
+or compile ityourself.
 
 In the first case, you just have to replace the `max30102` folder of the module with the one provided in the artifact
 archive.
 
 In either case, you have to choose the proper version of `mpy-cross` according to your Micropython version: for
 MicroPython v.1.18 and below, you can use `mpy-cross-v5`, while for MicroPython v1.19 you have to use `mpy-cross-v6`.
+
+More information is provided into [this](https://github.com/n-elia/MAX30102-MicroPython-driver/pull/19) pull request.
