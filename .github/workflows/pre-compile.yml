@@ -1,0 +1,83 @@
+# This workflow will pre-compile the module using mpy-cross
+
+# To test with act:
+# act -j precompile-v5 -s GITHUB_TOKEN=GH_token --artifact-server-path artifacts_v5
+# act -j precompile-v6 -s GITHUB_TOKEN=GH_token --artifact-server-path artifacts_v6
+
+name: Pre-compile modules
+
+on:
+  push:
+
+jobs:
+  precompile-v5:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: max30102
+
+      - uses: actions/checkout@v3
+        with:
+          repository: 'micropython/micropython'
+          path: micropython
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.8'
+
+      # For MicroPython version <1.19, compile with mpy-cross-v5
+      - name: Install mpy-cross v5
+        run: |
+          pip install mpy-cross-v5
+
+      - name: Pre-compile module using mpy-cross v5
+        run: |
+          mkdir -p precompiled/v5/max30102
+          python -m mpy_cross_v5 max30102/max30102/__init__.py -o precompiled/v5/max30102/__init__.mpy
+          python -m mpy_cross_v5 max30102/max30102/circular_buffer.py -o precompiled/v5/max30102/circular_buffer.mpy
+          ls -l precompiled/v5/max30102
+
+      - name: Upload artifact for MicroPython version <=1.18
+        uses: actions/upload-artifact@v2
+        with:
+          name: v1.18_precompiled_module
+          path: precompiled/v5
+
+  precompile-v6:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: max30102
+
+      - uses: actions/checkout@v3
+        with:
+          repository: 'micropython/micropython'
+          path: micropython
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.8'
+
+      # For MicroPython version 1.19+, compile with mpy-cross-v6
+      - name: Install mpy-cross v6
+        run: |
+          pip install mpy-cross-v6
+
+      - name: Pre-compile module using mpy-cross v6
+        run: |
+          mkdir -p precompiled/v6/max30102
+          python -m mpy_cross_v6 max30102/max30102/__init__.py -o precompiled/v6/max30102/__init__.mpy
+          python -m mpy_cross_v6 max30102/max30102/circular_buffer.py -o precompiled/v6/max30102/circular_buffer.mpy
+          ls -l precompiled/v6/max30102
+
+      - name: Upload artifact for MicroPython version >=1.19
+        uses: actions/upload-artifact@v2
+        with:
+          name: v1.19_precompiled_module
+          path: precompiled/v6
