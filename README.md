@@ -90,8 +90,9 @@ The folder tree should look as follows:
 ┣ 📜 boot.py
 ┣ 📜 main.py
 ┗ 📂 lib
-  ┣ 📜 __init__.py
-  ┗ 📜 circular_buffer.py
+  ┗ 📂 max30102
+    ┣ 📜 __init__.py
+    ┗ 📜 circular_buffer.py
 ```
 
 Then, import the constructor as follows:
