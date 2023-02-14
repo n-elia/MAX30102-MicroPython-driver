@@ -81,9 +81,9 @@ content into your microcontroller. If you prefer, you can perform a manual insta
 #### 1b - **manual way** (no Internet access required)
 
 To directly include the library into a MicroPython project, it's sufficient to copy `max30102/circular_buffer.py`
-and `max30102/__init__.py` next to your `main.py` file, into the `lib/max30102` directory.
+and `max30102/__init__.py`, into the `lib/max30102` directory.
 
-The folder tree should look as follows:
+The folder tree of your device should look as follows:
 
 ```text
 .
