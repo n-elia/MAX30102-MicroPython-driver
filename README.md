@@ -12,10 +12,7 @@ feedback in the Discussions section.
 
 ## Table of contents
 
-# Table of contents
-
 - [Maxim MAX30102 MicroPython driver](#maxim-max30102-micropython-driver)
-  - [Table of contents](#table-of-contents)
   - [Disclaimer](#disclaimer)
   - [Usage](#usage)
     - [1 - Including this library into your project](#1---including-this-library-into-your-project)
