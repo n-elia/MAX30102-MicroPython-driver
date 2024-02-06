@@ -1,4 +1,26 @@
-# main.py
+""" BASIC USAGE EXAMPLE
+This example shows how to use the MAX30102 sensor to collect data from the RED and IR channels.
+
+The sensor is connected to the I2C bus, and the I2C bus is scanned to ensure that the sensor is connected.
+The sensor is also checked to ensure that it is a MAX30102 or MAX30105 sensor.
+
+The sensor is set up with the following parameters:
+- Sample rate: 400 Hz
+- Averaged samples: 8
+- LED brightness: medium
+- Pulse width: 411 µs
+- Led mode: 2 (RED + IR)
+
+The temperature is read at the beginning of the acquisition.
+
+Then, in a loop the data is printed to the serial port, so that it can be plotted with a Serial Plotter.
+Also the real acquisition frequency (i.e. the rate at which samples are collected from the sensor) is computed
+and printed to the serial port. It differs from the sample rate, because the sensor processed the data and
+averages the samples before putting them into the FIFO queue (by default, 8 samples are averaged).
+
+Author: n-elia
+"""
+
 # Some ports need to import 'sleep' from 'time' module
 from machine import sleep, SoftI2C, Pin
 from utime import ticks_diff, ticks_us
