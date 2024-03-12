@@ -43,7 +43,7 @@ Please do not rely on it for medical purposes or professional usage.
 
 Driver usage is quite straightforward. You just need to import the library, and to set up a `SoftI2C` instance.
 
-A full example is provided in `/example` directory.
+A full example is provided in `/examples/basic_usage` directory.
 
 ### 1 - Including this library into your project
 
@@ -98,8 +98,8 @@ Then, import the constructor as follows:
 from max30102 import MAX30102
 ```
 
-To run the example in `./example` folder, copy `max30102/circular_buffer.py` and `max30102/__init__.py` into
-the `./example/lib/max30102` directory. Then, upload the `./example` directory content into your microcontroller. After the
+To run the example in `./examples/basic_usage` folder, copy `max30102/circular_buffer.py` and `max30102/__init__.py` into
+the `./examples/basic_usage/lib/max30102` directory. Then, upload the `./examples/basic_usage` directory content into your microcontroller. After the
 upload, press the reset button of your board are you're good to go.
 
 ### 2 - I2C setup and sensor configuration
@@ -288,6 +288,9 @@ resolution of 0.0625°C, but be aware that the accuracy is ±1°C.
 
 ## Changelog
 
+- v0.4.2
+    - Added an heartrate estimation example.
+    - Issued a new release to update the PyPi docs.
 - v0.4.1
     - Changed the module files organization.
     - Added support to `mip` package manager.
@@ -356,7 +359,7 @@ running an I2C scan before actually using the sensor, as shown in the provided e
 
 ### Realtime plot over Serial
 
-The example proposed in this repository ([main.py](./example/main.py)) contains a print statement in a CSV-like
+The example proposed in this repository ([main.py](./examples/basic_usage/main.py)) contains a print statement in a CSV-like
 format: `print(red_reading, ",", IR_reading)`. If you open Arduino IDE and connect your board, then you will be able to
 open the *serial plotter* (Ctrl+Maiusc+L) and see a real-time plot of your readings (need some help? take a
 look [here](https://learn.sparkfun.com/tutorials/max30105-particle-and-pulse-ox-sensor-hookup-guide/all)).
@@ -376,8 +379,9 @@ your phone camera to check), then you have to collect IR samples as red ones and
 
 If you're looking for algorithms for extracting heartrate and SPO2 from your RAW data, take a
 look [here](https://github.com/aromring/MAX30102_by_RF)
-and [here](https://github.com/kandizzy/esp32-micropython/tree/master/PPG)
+and [here](https://github.com/kandizzy/esp32-micropython/tree/master/PPG).
 
+A basic example of heartrate detection is also available in `./examples/heart_rate`.
 
 ### ESP8266 module import error
 
