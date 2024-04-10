@@ -40,11 +40,17 @@ The `HeartRateMonitor` class is designed to calculate heart rate from the raw se
 
 ## Example Usage
 
-python
-Copy code
-hr_monitor = HeartRateMonitor(sample_rate=100, window_size=150, smoothing_window=10)
+For a complete example, see `./main.py`.
 
 ```python
+# Initialize the heart rate monitor
+hr_monitor = HeartRateMonitor(
+    # Select a sample rate that matches the sensor's acquisition rate
+    sample_rate=actual_acquisition_rate,
+    # Select a significant window size to calculate the heart rate (2-5 seconds)
+    window_size=int(actual_acquisition_rate * 3),
+)
+
 # Add samples in a loop (replace the sample polling with actual sensor data retrieval)
 for _ in range(1000):  # Example loop
     sample = ...  # Poll the MAX30102/5 sensor to get a new sample
