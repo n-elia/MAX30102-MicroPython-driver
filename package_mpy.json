@@ -1,0 +1,9 @@
+{
+  "urls": [
+    ["max30102/__init__.mpy", "https://github.com/n-elia/MAX30102-MicroPython-driver/releases/latest/download/__init__.mpy"],
+    ["max30102/circular_buffer.mpy", "https://github.com/n-elia/MAX30102-MicroPython-driver/releases/latest/download/circular_buffer.mpy"]
+  ],
+  "deps": [
+  ],
+  "version": "0.5.0"
+}

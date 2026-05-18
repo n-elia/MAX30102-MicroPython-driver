@@ -1,7 +1,4 @@
-[![Upload Python Package](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/python-publish.yml/badge.svg)](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/python-publish.yml)
-[![Pre-compile modules](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/pre-compile.yml/badge.svg)](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/pre-compile.yml)
-[![PyPI version](https://badge.fury.io/py/micropython-max30102.svg)](https://badge.fury.io/py/micropython-max30102)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/micropython-max30102?color=blue&label=upip%20installations)
+[![Build](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/release.yml/badge.svg)](https://github.com/n-elia/MAX30102-MicroPython-driver/actions/workflows/release.yml)
 
 # Maxim MAX30102 MicroPython driver
 
@@ -49,13 +46,10 @@ A full example is provided in `/examples/basic_usage` directory.
 
 #### 1a - **network-enabled MicroPython ports**
 
-> Warning: in latest MicroPython releases `upip` has been deprecated in favor
-> of [`mip`](https://docs.micropython.org/en/latest/reference/packages.html#package-management). This module is
-> compatible
-> with both of them. Please use the package manager included into your MicroPython version.
+The library is distributed via [`mip`](https://docs.micropython.org/en/latest/reference/packages.html#package-management),
+the MicroPython package manager. After your board is connected to the Internet, you have two install options:
 
-If your MicroPython version supports `mip` package manager, put these lines **after** the setup of an Internet
-connection:
+**Source install (recommended for compatibility, MicroPython >= 1.19):**
 
 ```python
 import mip
@@ -63,17 +57,19 @@ import mip
 mip.install("github:n-elia/MAX30102-MicroPython-driver")
 ```
 
-If your MicroPython version supports `upip` package manager, put these lines **after** the setup of an Internet
-connection:
+**Precompiled install (faster import, lower RAM at load, MicroPython >= 1.23 only):**
 
 ```python
-import upip
+import mip
 
-upip.install("micropython-max30102")
+mip.install("github:n-elia/MAX30102-MicroPython-driver/package_mpy.json")
 ```
 
-To run the example in `./example` folder, please set your WiFi credentials in `boot.py` and then upload `./example`
-content into your microcontroller. If you prefer, you can perform a manual install as explained below.
+The precompiled variant fetches `.mpy` bytecode artifacts from the latest GitHub release. The two paths install
+identical functionality; pick the precompiled one if your firmware is recent enough (it targets the `.mpy` v6.3 ABI).
+
+To run the example in `./examples/basic_usage` folder, please set your WiFi credentials in `boot.py` and then upload
+its content into your microcontroller. If you prefer, you can perform a manual install as explained below.
 
 #### 1b - **manual way** (no Internet access required)
 
@@ -206,14 +202,14 @@ as `popRedFromStorage()`.
 As a consequence, this is an example on how the library can be used to read data from the sensor:
 
 ```python
-while (True):
+while True:
     # The check() method has to be continuously polled, to check if
     # there are new readings into the sensor's FIFO queue. When new
     # readings are available, this function will put them into the storage.
     sensor.check()
 
-    # Check if the storage contains available samples
-    if (sensor.available()):
+    # Drain all queued samples — check() may add multiple per call.
+    while sensor.available():
         # Access the storage FIFO and gather the readings (integers)
         red_sample = sensor.pop_red_from_storage()
         ir_sample = sensor.pop_ir_from_storage()

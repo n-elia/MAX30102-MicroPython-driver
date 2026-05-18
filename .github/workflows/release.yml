@@ -1,0 +1,46 @@
+# Builds precompiled .mpy artifacts and attaches them to the GitHub release
+# that triggered the workflow. Targets the current MicroPython .mpy ABI (v6.3),
+# which is compatible with MicroPython v1.23.0 and later.
+#
+# Users on MicroPython >= 1.23 can install the precompiled variant with:
+#   mpremote mip install github:n-elia/MAX30102-MicroPython-driver/package_mpy.json
+# Users on older firmware (or who want the source) keep using package.json.
+
+name: Build and attach precompiled .mpy artifacts
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-mpy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install mpy-cross
+        run: pip install mpy-cross
+
+      - name: Pre-compile modules
+        run: |
+          python -m mpy_cross max30102/__init__.py
+          python -m mpy_cross max30102/circular_buffer.py
+          ls -l max30102/*.mpy
+
+      - name: Attach .mpy files to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${GITHUB_REF_NAME}" \
+            max30102/__init__.mpy \
+            max30102/circular_buffer.mpy \
+            --clobber
