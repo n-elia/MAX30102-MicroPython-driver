@@ -284,6 +284,19 @@ resolution of 0.0625°C, but be aware that the accuracy is ±1°C.
 
 ## Changelog
 
+- v0.5.1
+    - Distribution-only release; no changes to the driver code itself.
+    - **Removed PyPI distribution.** The library is now installed exclusively via
+      [`mip`](https://docs.micropython.org/en/latest/reference/packages.html#package-management).
+      Last PyPI release is v0.4.2; users on `pip`/`upip` should switch to one of the `mip` install
+      commands documented in the Usage section.
+    - **Added precompiled `.mpy` distribution** for MicroPython v1.23+ via the new `package_mpy.json`
+      manifest. Bytecode artifacts (targeting `.mpy` ABI v6.3) are built by CI on every release and
+      attached as release assets.
+    - Internal: replaced the legacy `python-publish.yml` and `pre-compile.yml` workflows with a single
+      `release.yml`; removed `setup.py` and `sdist_upip.py`.
+    - Fixed an outdated example snippet in the "Read data from sensor" section of this README
+      (it still used the pre-v0.5.0 `if sensor.available()` pattern).
 - v0.5.0
     - **Breaking:** `set_pulse_amplitude_it()` renamed to `set_pulse_amplitude_ir()` to match the
       actual LED (IR, not "IT"). Callers using the old name must update to the new one.
