@@ -288,6 +288,17 @@ resolution of 0.0625°C, but be aware that the accuracy is ±1°C.
 
 ## Changelog
 
+- v0.5.0
+    - **Breaking:** `set_pulse_amplitude_it()` renamed to `set_pulse_amplitude_ir()` to match the
+      actual LED (IR, not "IT"). Callers using the old name must update to the new one.
+    - **Breaking:** Fixed the bit-shift direction in `fifo_bytes_to_int()` (now `>> (3 - pulse_width)`
+      instead of `>> pulse_width`). Raw sample magnitudes will change whenever `pulse_width` is not 0;
+      downstream calibration (SpO2, HR thresholds) may need to be re-tuned.
+    - Fixed `check()` so it drains the entire sensor FIFO per call instead of returning after the
+      first sample. Callers polling `check()` in a tight loop should now iterate `pop_*_from_storage()`
+      with `while sensor.available()` instead of `if sensor.available()` to avoid leaving samples
+      queued between polls. The bundled examples have been updated accordingly.
+    - Thanks to @sakluk for the fixes (PR #26).
 - v0.4.2
     - Added an heartrate estimation example.
     - Issued a new release to update the PyPi docs.
