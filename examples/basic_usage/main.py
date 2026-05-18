@@ -93,11 +93,11 @@ def main():
     while True:
         # The check() method has to be continuously polled, to check if
         # there are new readings into the sensor's FIFO queue. When new
-        # readings are available, this function will put them into the storage.
+        # readings are available, this function will put them into the storage queue.
         sensor.check()
 
-        # Check if the storage contains available samples
-        if sensor.available():
+        # Drain all queued samples from the queue
+        while sensor.available():
             # Access the storage FIFO and gather the readings (integers)
             red_reading = sensor.pop_red_from_storage()
             ir_reading = sensor.pop_ir_from_storage()
