@@ -178,7 +178,7 @@ LED_POWER = MAX30105_PULSEAMP_MEDIUM
 # MAX30105_PULSE_AMP_MEDIUM =  0x7F # 25.4mA - Presence detection of ~8 inch
 # MAX30105_PULSE_AMP_HIGH =    0xFF # 50.0mA - Presence detection of ~12 inch
 sensor.set_pulse_amplitude_red(LED_POWER)
-sensor.set_pulse_amplitude_it(LED_POWER)
+sensor.set_pulse_amplitude_ir(LED_POWER)
 sensor.set_pulse_amplitude_green(LED_POWER)
 
 # Set the LED brightness of all the active LEDs

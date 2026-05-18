@@ -211,7 +211,7 @@ class MAX30102(object):
 
         # Set the LED brightness to the default value of 'low'
         self.set_pulse_amplitude_red(led_power)
-        self.set_pulse_amplitude_it(led_power)
+        self.set_pulse_amplitude_ir(led_power)
         self.set_pulse_amplitude_green(led_power)
         self.set_pulse_amplitude_proximity(led_power)
 
@@ -400,14 +400,14 @@ class MAX30102(object):
         if self._active_leds > 0:
             self.set_pulse_amplitude_red(amplitude)
         if self._active_leds > 1:
-            self.set_pulse_amplitude_it(amplitude)
+            self.set_pulse_amplitude_ir(amplitude)
         if self._active_leds > 2:
             self.set_pulse_amplitude_green(amplitude)
 
     def set_pulse_amplitude_red(self, amplitude):
         self.i2c_set_register(MAX30105_LED1_PULSE_AMP, amplitude)
 
-    def set_pulse_amplitude_it(self, amplitude):
+    def set_pulse_amplitude_ir(self, amplitude):
         self.i2c_set_register(MAX30105_LED2_PULSE_AMP, amplitude)
 
     def set_pulse_amplitude_green(self, amplitude):
@@ -580,7 +580,8 @@ class MAX30102(object):
 
     def fifo_bytes_to_int(self, fifo_bytes):
         value = unpack(">i", b'\x00' + fifo_bytes)
-        return (value[0] & 0x3FFFF) >> self._pulse_width
+        # return (value[0] & 0x3FFFF) >> self._pulse_width  # original (bug: shifts wrong direction)
+        return (value[0] & 0x3FFFF) >> (3 - self._pulse_width)
 
     # Returns how many samples are available
     def available(self):
@@ -681,7 +682,7 @@ class MAX30102(object):
                         self.fifo_bytes_to_int(fifo_bytes[6:9])
                     )
 
-                return True
+            return True
 
         else:
             return False
