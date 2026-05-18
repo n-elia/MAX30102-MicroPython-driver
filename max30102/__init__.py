@@ -580,7 +580,6 @@ class MAX30102(object):
 
     def fifo_bytes_to_int(self, fifo_bytes):
         value = unpack(">i", b'\x00' + fifo_bytes)
-        # return (value[0] & 0x3FFFF) >> self._pulse_width  # original (bug: shifts wrong direction)
         return (value[0] & 0x3FFFF) >> (3 - self._pulse_width)
 
     # Returns how many samples are available
